@@ -121,7 +121,7 @@
 			document.getElementById("loginnorreadyform").style.display = "block";
 			
 			try{
-				var wsUrl = 'ws://hamser.kr:81';
+				var wsUrl = 'ws://localhost:81';
 				var websocket = new WebSocket(wsUrl);
 			}catch(e){}
 			
