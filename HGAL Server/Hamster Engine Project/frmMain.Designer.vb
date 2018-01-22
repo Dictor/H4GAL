@@ -29,16 +29,17 @@ Partial Class frmMain
         '
         Me.lstLog.Font = New System.Drawing.Font("맑은 고딕", 8.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(129, Byte))
         Me.lstLog.FormattingEnabled = True
-        Me.lstLog.ItemHeight = 21
+        Me.lstLog.HorizontalExtent = 700
+        Me.lstLog.HorizontalScrollbar = True
         Me.lstLog.Location = New System.Drawing.Point(13, 13)
         Me.lstLog.Name = "lstLog"
-        Me.lstLog.Size = New System.Drawing.Size(793, 382)
+        Me.lstLog.Size = New System.Drawing.Size(793, 381)
         Me.lstLog.TabIndex = 0
         '
         'frmMain
         '
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
-        Me.ClientSize = New System.Drawing.Size(818, 431)
+        Me.ClientSize = New System.Drawing.Size(824, 448)
         Me.Controls.Add(Me.lstLog)
         Me.MaximumSize = New System.Drawing.Size(840, 487)
         Me.MinimumSize = New System.Drawing.Size(840, 487)

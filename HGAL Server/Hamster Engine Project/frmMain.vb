@@ -46,4 +46,8 @@ Public Class frmMain
         lstLog.Items.Add(data)
         lstLog.SelectedIndex = lstLog.Items.Count - 1
     End Sub
+
+    Private Sub lstLog_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstLog.SelectedIndexChanged
+
+    End Sub
 End Class

@@ -1,7 +1,7 @@
 ﻿Imports Hamster_Engine_Project.HE_Common_Component
 
 Public Class Project
-    Public Shared Version As New HamsterVersion("HGAL Server", 0, 0, 171026, 0)
+    Public Shared Version As New HamsterVersion("HGAL Server", 0, 0, 171228, 1)
 
     '("개체 식별자 문자열", {"어셈블리 경로"})
     Private Shared LoadObject_PROJ_Info As New Dictionary(Of String, Object())
