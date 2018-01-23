@@ -94,7 +94,7 @@
 			}
 			
 			function login(){
-				window.open("./login.php","로그인","width=462px; height=320px, scrollbars=no, resizeable=no");
+				
 			}
 			
 			$("#loginform").hide();
@@ -112,7 +112,8 @@
 			websocket.onerror = function (evt) { onError(evt) };
 					
 			function onOpen(evt){
-				websocket.send("")
+				getSID();
+				websocket.send("SESSION," + sid);
 			}
 
 			function onMessage(evt) {
@@ -122,6 +123,10 @@
 					var pdata = rawdata.split(",");
 					
 					if (pdata[0]=="loginres"){
+					} else if (pdata[0]=="SESSION"){
+						$("#loginform").show();
+						$("#loginerrorform").hide();			
+						$("#loginnorreadyform").hide();
 					}
 				}
 			}

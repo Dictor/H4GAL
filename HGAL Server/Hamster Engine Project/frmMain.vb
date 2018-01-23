@@ -17,6 +17,21 @@ Public Class frmMain
 
     Private ServerSoc As Object
     Delegate Sub socevt(kind As Object, args() As Object)
+
+    Private SessionList As Dictionary(Of String, Session)
+    Private Class Session
+        Public SocketNumber As Integer
+        Public SessionStatus As SessionFlag = SessionFlag.NoCredential
+        Public CredentialUserName As String
+        Public CredentialStartTime As Date
+
+        Enum SessionFlag
+            NoCredential
+            DisposableCredential
+            AccountCredential
+        End Enum
+    End Class
+
     Public Sub initproc()
         Print("[INIT]UI 로드 완료")
         Print(Project.Version.GetName & "  " & Project.Version.GetVersion(True))
@@ -35,13 +50,12 @@ Public Class frmMain
 
     Public Sub SocListen(kind As Object, args() As Object)
         If kind = 0 Then 'Connect
-            Print("[SOCKET] 어떤 클라이언트가 접속에 실패함")
+            Print("[SOCKET]어떤 클라이언트가 접속에 실패함")
         ElseIf kind = 1 Then 'ConnectListen
             Print("[SOCKET]" & args(1).ToString & "에서 접속, " & args(2) & "번에 소켓에 할당됨")
         ElseIf kind = 2 Then 'Disconnect
             Print("[SOCKET]" & args(0) & "번 소켓 연결 해제")
         ElseIf kind = 3 Then 'Listen
-            Print("[SOCKET]" & args(1) & "번 소켓에서 데이터 수신 : '" & System.Text.Encoding.UTF8.GetString(args(0)) & "'")
             ProcessMsg(args(0), args(1))
         End If
     End Sub
@@ -56,6 +70,19 @@ Public Class frmMain
         Else 'NON-GET REQ시
             Dim msg As String = DecodeMessage(data)
             Print("[SOCKET]" & socnum & "번 소켓에서 데이터 수신 : '" & msg & "'")
+            Dim pmsg As String() = Split(msg, ",")
+
+            If pmsg(0) = "SESSION" Then
+                If SessionList.ContainsKey(pmsg(1)) Then
+                    If SessionList(pmsg(0)).SessionStatus = Session.SessionFlag.NoCredential Then
+                        ServerSoc.Send("SESSION,OLD", socnum)
+                    Else
+                        ServerSoc.Send("SESSION,OLD," & SessionList(pmsg(0)).CredentialUserName, socnum)
+                    End If
+                Else
+                    ServerSoc.Send("SESSION,NEW", socnum)
+                End If
+            End If
         End If
     End Sub
 
