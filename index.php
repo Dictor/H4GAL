@@ -1,39 +1,21 @@
 <!DOCTYPE html> 
 <html lang="ko">
 	<head>
+		<!--jQuery-->
+		<script src="lib/jquery-3.2.1.min.js"></script>
+		<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+		<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+		<!--Bootstrap-->
 		<link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
 		<link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
 		<script src="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device=width, initial-scale=1">
+		<link rel="stylesheet" href="style/common_style.css">
 			
 		<title>하늘고 4기 사진 저장소</title>
-		<style>
-			@import url(https://fonts.googleapis.com/earlyaccess/nanumgothic.css);
-			.text {font-family: 'Nanum Gothic', sans-serif;}
-			
-			
-			/*Center Align Class START*/
-			.container-fluid{
-			  height:100%;
-			  display:table;
-			  width: 100%;
-			  padding: 0;
-			}
-			.row-fluid {height: 100%; display:table-cell; vertical-align: middle;}
-			.centering {
-			  float:none;
-			  margin:0 auto;
-			}
-			html, body{height:100%; margin:0;padding:0}
-			/*Center Align Class END*/
-			
-			
-			body 
-			{ 
-				background-color : #ffffff;
-			}	
-		</style>
 	</head>
 	
 	<body>
@@ -41,7 +23,6 @@
 			<div class="row-fluid">
 				<div class="centering text-center">
 					<div class="container-fluid"  style="width:90%">
-						
 						<img src="./logo.png" style="width: 25%; max-width: 601px;">
 						<br><br>
 						
@@ -74,9 +55,13 @@
 											<table style="width:100%">
 												<tr style="vertical-align:top">
 													<td style="width:50%; border-right:1px solid gray;">
-														<button type="button" class="btn btn-primary btn-lg" style="width:90%; height:90%;" onclick="login();">
-															<p style="text;">로그인</p>
-														</button>
+														<div id="login_btn">
+															<button type="button" class="btn btn-primary btn-lg" style="width:90%; height:90%;" onclick="login();">
+																<p style="text;">로그인</p>
+															</button>
+														</div>
+														<div id="login_form" style="display: none">
+														</div>
 													</td>
 													
 													<td style="width:50%;">
@@ -84,7 +69,6 @@
 															<p style="text;">일회용 자격증명</p>
 														</button>
 													</td>
-													
 												</tr>
 											</table>
 										</div>	
@@ -93,9 +77,7 @@
 							</div>
 							<div class="col-md-3"></div>
 						</div>
-						
-						<br><p style="text; font-size:1em; color:gray;"> &copy; 김정현(kimdictor@gmail.com) 2017</p>
-						
+						<br><p style="text; font-size:1em; color:gray;"> &copy; 김정현(kimdictor@gmail.com) 2018</p>
 					</div>
 				</div>
 			</div>
@@ -111,14 +93,13 @@
 				?>
 			}
 			
-			
 			function login(){
 				window.open("./login.php","로그인","width=462px; height=320px, scrollbars=no, resizeable=no");
 			}
 			
-			document.getElementById("loginform").style.display = "none";
-			document.getElementById("loginerrorform").style.display = "none";
-			document.getElementById("loginnorreadyform").style.display = "block";
+			$("#loginform").hide();
+			$("#loginerrorform").hide();			
+			$("#loginnorreadyform").show();
 			
 			try{
 				var wsUrl = 'ws://localhost:81';
@@ -130,6 +111,10 @@
 			websocket.onmessage = function (evt) { onMessage(evt) };
 			websocket.onerror = function (evt) { onError(evt) };
 					
+			function onOpen(evt){
+				websocket.send("")
+			}
+
 			function onMessage(evt) {
 				if (evt.data == "dummy_checkconn"){
 				}else{
@@ -142,15 +127,15 @@
 			}
 					
 			function onError(evt) {
-				document.getElementById("loginform").style.display = "none";
-				document.getElementById("loginerrorform").style.display = "block";
-				document.getElementById("loginnorreadyform").style.display = "none";
+				$("#loginform").hide();
+				$("#loginerrorform").show();			
+				$("#loginnorreadyform").hide();
 			}
 			
 			function onClose(evt) { 
-				document.getElementById("loginform").style.display = "none";
-				document.getElementById("loginerrorform").style.display = "block";
-				document.getElementById("loginnorreadyform").style.display = "none";
+				$("#loginform").hide();
+				$("#loginerrorform").show();			
+				$("#loginnorreadyform").hide();
 			}
 		</script>
 	</body>
