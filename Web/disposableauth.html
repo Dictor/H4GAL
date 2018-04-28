@@ -1,0 +1,92 @@
+<!DOCTYPE html> 
+<html lang="ko">
+    <head>
+        <!--jQuery-->
+        <script src="lib/jquery-3.2.1.min.js"></script>
+        <link rel="stylesheet" href="lib/jquery-ui.css">
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+        <!--Bootstrap-->
+        <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+        <script src="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device=width, initial-scale=1">
+        <link rel="stylesheet" href="style/common_style.css">
+        <script src="lib/json2.js"></script>
+
+        <script src="contr/evtselector.js"></script>
+        <script src="contr/disposableauth.js"></script>
+
+        <script src="lib/websocket.js"></script>
+        <script src="lib/cookie.js"></script>
+
+        <title>하늘고 4기 사진 저장소</title>
+    </head>
+    <body>
+        <script>
+            selector.nowPage = "disposableauth"
+            ctr_disposableauth.init();
+        </script>
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="centering text-center">
+                    <div class="container-fluid"  style="width:90%">
+                        
+                        <img src="./img/logo.png" style="width: 15%; max-width: 601px;">
+                        <br><br>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <p class="text" style="font-size:4em; font-weight:bold;">하늘고 4기 남학생 사진창고</p>
+                                <p class="text" style="font-size:3em; font-weight:bold;">일회용 자격증명 발급</p>
+                            </div>
+                        </div>
+        
+                        <p class="text" style="font-size:1.3em;"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span> 계정이 없지만, 서비스를 이용하고 싶은 하늘고 4기 남자 졸업생들은 일회용 자격증명을 발급받아 서비스를 이용할수 있습니다.</p>
+                        <p class="text" style="font-size:1.3em; font-weight:bold;"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span> 아래의 질문에 대한 올바른 답변을 입력하여 졸업생임을 증명하면 자격증명이 발급됩니다.</p>
+                        <br>
+                        <div class="row" >
+                            <div class="col-md-3"></div>
+                            <div class="col-md-6">
+                                <div class="well">
+                                    <div id="statusdiv_connecting">
+                                        <p style=" font-size:1em; font-weight:bold;">
+                                        <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
+                                        서버에 연결중입니다...</p>
+                                    </div>
+                                    <div id="statusdiv_error">
+                                        <p class="text" style="font-size:1em; font-weight:bold; color:red">
+                                        <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                                        서버에 연결 중 오류가 발생했습니다! 페이지를 새로고쳐 연결을 재시도하세요.</p>
+                                    </div>
+                                    <div id="statusdiv_success">
+                                        <p id="txtQuestion" class="text" style="font-size:1.3em; font-weight:bold;">질문</p>
+                                        <div class="input-group">
+                                            <input id="txtAnswer" type="text" class="form-control" placeholder="여기에 답변을 입력하세요!">								
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-default" type="button" onclick="ctr_disposableauth.tryAnswer();">제출</button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3"></div>
+                        </div>
+                        <button type="button" class="btn btn-warning btn-lg" onclick="location.href='./index.html'">처음으로 돌아가기</button>
+                        
+                        <br><br><p class="text" style="font-size:1em; color:gray;"> &copy; 김정현(kimdictor@gmail.com) 2017</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            function login(){
+                window.open("./login.php","로그인","width=400px; height=250px, scrollbars=no, resizeable=no");
+            }
+        </script>
+    </body>
+</html>
+

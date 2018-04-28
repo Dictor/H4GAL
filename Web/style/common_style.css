@@ -1,0 +1,20 @@
+@import url(https://fonts.googleapis.com/earlyaccess/nanumgothic.css);
+.text {font-family: 'Nanum Gothic', sans-serif;}
+
+/*Center Align Class START*/
+.container-fluid{
+  height:100%;
+  display:table;
+  width: 100%;
+  padding: 0;
+}
+.row-fluid {height: 100%; display:table-cell; vertical-align: middle;}
+.centering {
+  float:none;
+  margin:0 auto;
+}
+html, body{height:100%; margin:0;padding:0}
+/*Center Align Class END*/
+
+body {background-color : #ffffff;}	
+.kakaologin{background-image: url("../img/kakaologin.png"); width: 285px; height: 46.5px; background-size: contain;} 
