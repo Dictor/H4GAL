@@ -108,6 +108,9 @@ Public Class frmMain
                     nowsess.SessionStatus = Session.SessionFlag.NoCredential
                     nowsess.CredentialStartTime = Now
                     SessionList.Add(sid.ToString, nowsess)
+                ElseIf pmsg(0) = "TRYDISPAUTH" Then
+                    Dim nowsid = JObject.Parse(pmsg(1))("sid")
+
                 ElseIf pmsg(0) = "GETDISPQUESTION" Then
                     Dim nowsid = JObject.Parse(pmsg(1))("sid")
                     Dim nowquestion As String = questionlist(questionSelector.Next(0, questionlist.Length))
