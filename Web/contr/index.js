@@ -7,9 +7,25 @@ var ctr_index = {
             ws.init();
         }
     },
-    login : function () {
+    showlogininput : function () {
         $("#login_btn").hide();
         $("#login_input").show();
+    },
+    showdispinput : function () {
+        $("#login_btn").hide();
+        $("#disp_input").show();
+    },
+    reqdispauth : function () {
+        var code = $("#txtAuthCode").val();
+        if($("#txtStuID").val() && $("#txtName").val() && code){
+            ws.makeREQ("TRYDISPAUTH", {"sid": sid, "name": encodeURIComponent($("#txtName").val()), "stuid": $("#txtStuID").val(), "code": SHA256(code + code.length)});
+        }
+    },
+    reqaccauth : function () {
+        var pw = $("#txtPW").val();
+        if($("#txtID").val() && pw){
+            ws.makeREQ("TRYACCAUTH", {"sid": sid, "id": $("#txtID").val(), "pw": SHA256(pw + pw.length)});
+        }
     },
     onOpen : function(evt) {
             sid = getCookie("sid");
