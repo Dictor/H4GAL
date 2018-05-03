@@ -17,4 +17,4 @@ html, body{height:100%; margin:0;padding:0}
 /*Center Align Class END*/
 
 body {background-color : #ffffff;}	
-.kakaologin{background-image: url("../img/kakaologin.png"); width: 285px; height: 46.5px; background-size: contain;} 
+.kakaologin{background-image: url("../img/kakaologin.png"); width: 285px; height: 46.5px; margin: auto; background-size: contain;} 
