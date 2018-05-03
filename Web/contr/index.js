@@ -55,6 +55,15 @@ var ctr_index = {
                 sid = reqData["sid"];
                 setCookie("sid", sid, 1);
                 ws.makeREQ("SESSION", {"sid": sid})
+            } else if (reqName == "TRYDISPAUTH"){
+                if (reqData["status"]){
+                    alert("자격증명을 취득했습니다.")
+                    window.location.reload();
+                } else {
+                    alert("오류가 발생했습니다! (" + reqData["error"] + ")");
+                }
+            } else if (reqName == "SHOWALERT"){
+                alert(reqData["msg"]);
             }
         },
     onError : function(evt) {

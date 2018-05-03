@@ -13,7 +13,7 @@ Public Class frmMain
     Private ServerSoc As Object
     Delegate Sub SocCb(kind As String, args As Object())
     Private clichecktim As New System.Timers.Timer(100)
-    Private questionlist As String()
+    Private DispAuthCodelist As String()
     Dim questionSelector As Random = New Random()
 
     Private SessionList As New Dictionary(Of String, Session)
@@ -43,9 +43,9 @@ Public Class frmMain
             'clichecktim.Start()
             Print("[INIT]소켓 시작 작업 완료")
             Dim fileopener = Hamster_Engine_Project.Project.Hamfile.CopyMe()
-            fileopener.SetFile(Application.StartupPath & "\data\question.txt", Encoding.UTF8)
-            questionlist = Split(fileopener.ReadText(), vbCrLf)
-            Print("[INIT]질문 리스트 읽기 완료")
+            fileopener.SetFile(Application.StartupPath & "\data\allowDispAuthCode.txt", Encoding.UTF8)
+            DispAuthCodelist = Split(fileopener.ReadText(), vbCrLf)
+            Print("[INIT]엑세스 코드 리스트 읽기 완료")
         Catch ex As Exception
             Print("[ERROR]소켓을 초기화하는중 오류가 발생했습니다!!")
             Print(ex.ToString)
@@ -86,8 +86,15 @@ Public Class frmMain
                 Dim msg As String = DecodeMessage(data)
                 Print("[SOCKET]" & socnum & "번 소켓에서 데이터 수신 : '" & msg & "'")
                 Dim pmsg As String() = Split(msg, "#")
-                If pmsg(0) = "SESSION" Then
-                    Dim nowsid = JObject.Parse(pmsg(1))("sid")
+                Dim reqName As String = pmsg(0)
+                Dim reqdata As JObject
+                Try
+                    reqData = JObject.Parse(pmsg(1))
+                Catch
+                    Print("[ERROR] Json Parse Error!")
+                End Try
+                If reqName = "SESSION" Then
+                    Dim nowsid = reqData("sid")
                     If SessionList.ContainsKey(nowsid) Then
                         If SessionList(nowsid).SessionStatus = Session.SessionFlag.NoCredential Then
                             SendREQ("GETCREDENTIAL", New JObject From {{"isNew", False}, {"status", "empty"}}, socnum)
@@ -99,7 +106,7 @@ Public Class frmMain
                     Else
                         SendREQ("GETCREDENTIAL", New JObject From {{"isNew", True}, {"error", ""}}, socnum)
                     End If
-                ElseIf pmsg(0) = "MAKESESSION" Then
+                ElseIf reqName = "MAKESESSION" Then
                     Dim sid As Guid = Guid.NewGuid
                     Dim nowjson As New JObject From {{"sid", sid.ToString}}
                     SendREQ("ISSUESESSION", nowjson, socnum)
@@ -108,34 +115,44 @@ Public Class frmMain
                     nowsess.SessionStatus = Session.SessionFlag.NoCredential
                     nowsess.CredentialStartTime = Now
                     SessionList.Add(sid.ToString, nowsess)
-                ElseIf pmsg(0) = "TRYDISPAUTH" Then
-                    Dim nowsid = JObject.Parse(pmsg(1))("sid")
-
-                ElseIf pmsg(0) = "GETDISPQUESTION" Then
-                    Dim nowsid = JObject.Parse(pmsg(1))("sid")
-                    Dim nowquestion As String = questionlist(questionSelector.Next(0, questionlist.Length))
-                    If SessionList(nowsid).otherData.ContainsKey("QANSWER") Then
-                        SendREQ("GETDISPQUESTION", New JObject From {{"status", True}, {"question", SessionList(nowsid).otherData("QQUESTION")}}, socnum)
-                    Else
-                        Dim escapequestion = Uri.EscapeUriString(Split(nowquestion, ",")(0))
-                        SessionList(nowsid).otherData.Add("QQUESTION", Split(nowquestion, ",")(0))
-                        SessionList(nowsid).otherData.Add("QANSWER", Split(nowquestion, ",")(1))
-                        SendREQ("GETDISPQUESTION", New JObject From {{"status", True}, {"question", escapequestion}}, socnum)
-                    End If
-                ElseIf pmsg(0) = "TRYANSWER" Then
-                    Dim nowsid = JObject.Parse(pmsg(1))("sid")
-                    Dim clians = Uri.UnescapeDataString(JObject.Parse(pmsg(1))("answer"))
-                    If SessionList(nowsid).otherData.ContainsKey("QANSWER") Then
-                        If clians = SessionList(nowsid).otherData("QANSWER") Then
-                            SessionList(nowsid).SessionStatus = Session.SessionFlag.DisposableCredential
-                            SendREQ("TRYANSWER", New JObject From {{"status", True}}, socnum)
+                ElseIf reqName = "TRYDISPAUTH" Then
+                    Dim nowsid = reqData("sid")
+                    If SessionList.ContainsKey(nowsid) Then
+                        If Not SessionList(nowsid).SessionStatus = Session.SessionFlag.NoCredential Then
+                            SendREQ("TRYDISPAUTH", New JObject From {{"status", False}, {"error", "ILLEGAL_CREDENTIAL"}}, socnum)
+                            Exit Sub
+                        End If
+                        Dim nowstuid As Integer
+                        If Integer.TryParse(reqdata("stuid"), nowstuid) Then
+                            If Uri.UnescapeDataString(reqdata("name").ToString).Length > 5 Then
+                                SendREQ("TRYDISPAUTH", New JObject From {{"status", False}, {"error", "ILLEGAL_NAME"}}, socnum)
+                                Exit Sub
+                            End If
+                            If nowstuid > 30000 And nowstuid < 40000 Then
+                                Dim codecorrect As Boolean = False
+                                For Each nowcode In DispAuthCodelist
+                                    If SHA256Hash(nowcode + nowcode.Length.ToString) = reqdata("code") Then
+                                        codecorrect = True
+                                    End If
+                                Next
+                                If codecorrect Then
+                                    SendREQ("TRYDISPAUTH", New JObject From {{"status", True}}, socnum)
+                                    SessionList(nowsid).CredentialUserName = Uri.UnescapeDataString(reqdata("name").ToString)
+                                    SessionList(nowsid).SessionStatus = Session.SessionFlag.DisposableCredential
+                                    SessionList(nowsid).otherData.Add("STUID", reqdata("stuid"))
+                                    Print("[DISPAUTH] '" & SessionList(nowsid).CredentialUserName & "'(" & SessionList(nowsid).otherData("STUID") & ") -> 코드 '" & reqdata("code").ToString & "' sid : " & nowsid.ToString)
+                                Else
+                                    SendREQ("TRYDISPAUTH", New JObject From {{"status", False}, {"error", "INCORRECT_CODE"}}, socnum)
+                                End If
+                            Else
+                                SendREQ("TRYDISPAUTH", New JObject From {{"status", False}, {"error", "ILLEGAL_STUID"}}, socnum)
+                            End If
                         Else
-                            SendREQ("TRYANSWER", New JObject From {{"status", False}}, socnum)
+                            SendREQ("TRYDISPAUTH", New JObject From {{"status", False}, {"error", "ILLEGAL_STUID"}}, socnum)
                         End If
                     Else
-                        SendREQ("TRYANSWER", New JObject From {{"status", False}}, socnum)
+                        SendREQ("TRYDISPAUTH", New JObject From {{"status", False}, {"error", "INVALID_SESSION"}}, socnum)
                     End If
-                Else
                 End If
             End If
         Catch ex As Exception
@@ -287,5 +304,15 @@ Public Class frmMain
         Next
 
         Return Encoding.ASCII.GetString(buffer, dataIndex, dataLength)
+    End Function
+
+    Public Function SHA256Hash(ByVal data As String) As String
+        Dim sha As SHA256 = New SHA256Managed()
+        Dim hash As Byte() = sha.ComputeHash(Encoding.ASCII.GetBytes(data))
+        Dim stringBuilder As StringBuilder = New StringBuilder()
+        For Each b As Byte In hash
+            stringBuilder.AppendFormat("{0:x2}", b)
+        Next
+        Return stringBuilder.ToString()
     End Function
 End Class
