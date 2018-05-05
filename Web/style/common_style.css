@@ -18,3 +18,4 @@ html, body{height:100%; margin:0;padding:0}
 
 body {background-color : #ffffff;}	
 .kakaologin{background-image: url("../img/kakaologin.png"); width: 285px; height: 46.5px; margin: auto; background-size: contain;} 
+.menudiv{width: 100%;} .menudiv > div{height: 100%; display: table-cell; float: none;}

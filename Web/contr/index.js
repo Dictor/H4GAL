@@ -48,7 +48,9 @@ var ctr_index = {
                         $("#statusdiv_error").hide();			
                         $("#statusdiv_conn").hide();
                     } else if  (reqData["status"] == "account"){
+                        location.href = "gallery.html"
                     } else if  (reqData["status"] == "disposable"){
+                        location.href = "gallery.html"
                     }
                 }
             } else if (reqName == "ISSUESESSION"){

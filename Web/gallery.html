@@ -1,0 +1,65 @@
+<!DOCTYPE html> 
+<html lang="ko">
+    <head>
+        <!--jQuery-->
+        <script src="lib/jquery-3.2.1.min.js"></script>
+        <link rel="stylesheet" href="lib/jquery-ui.css">
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+        <!--Bootstrap-->
+        <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+        <script src="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device=width, initial-scale=1">
+        <link rel="stylesheet" href="style/common_style.css">
+        <script src="lib/json2.js"></script>
+        <script src="lib/sha256.js"></script>
+
+        <script src="contr/evtselector.js"></script>
+        <script src="contr/gallery.js"></script>
+
+        <script src="lib/websocket.js"></script>
+        <script src="lib/cookie.js"></script>
+            
+        <title>하늘고 4기 사진 저장소</title>
+    </head>
+    <body>
+        <script>
+            selector.nowPage = "gallery"
+            ctr_gallery.init();
+        </script>
+        <div class="row menudiv" style="vertical-align: middle; padding-top: 10px; padding-left: 10px;">
+            <div class="col-md-1">
+                <img src="./img/logo.png" style="width: 100%; max-width: 85px;">
+            </div>
+            <div class="col-md-3">
+                <p class="text" style="font-size: 1.3em; font-weight: bold;">하늘고 4기 남학생 사진창고</p>
+            </div>
+            <div class="col-md-5"></div>
+            <div class="col-md-3">
+                <p id="txtAuthInfo" class="text" style="font-size: 1em;"></p>
+            </div>
+        </div>
+        <div id="errbox" class="alert alert-danger alert-dismissible fade in" role="alert" style="display: none; width: 95%; margin: auto; margin-top: 10px;">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <strong style="font-size: 1.5em;">오류가 발생했습니다!</strong><br><p id="errtxt">Error Detail</p>
+        </div>
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="centering text-center">
+                    <div class="container-fluid"  style="width:90%">                        
+                        <div class="row" >
+                            <div class="col-md-2"></div>
+                            <div class="col-md-8">
+                            </div>
+                            <div class="col-md-2"></div>
+                        </div>
+                        <br><p class="text" style="font-size:1em; color:gray;"> &copy; 김정현(kimdictor@gmail.com) 2018</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
