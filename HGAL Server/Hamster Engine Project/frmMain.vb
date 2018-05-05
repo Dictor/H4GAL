@@ -91,7 +91,7 @@ Public Class frmMain
                 Try
                     reqData = JObject.Parse(pmsg(1))
                 Catch
-                    Print("[ERROR] Json Parse Error!")
+                    Print("[ERROR] API Request Data Json Parse Error!")
                 End Try
                 If reqName = "SESSION" Then
                     Dim nowsid = reqData("sid")
@@ -99,9 +99,9 @@ Public Class frmMain
                         If SessionList(nowsid).SessionStatus = Session.SessionFlag.NoCredential Then
                             SendREQ("GETCREDENTIAL", New JObject From {{"isNew", False}, {"status", "empty"}}, socnum)
                         ElseIf SessionList(nowsid).SessionStatus = Session.SessionFlag.DisposableCredential Then
-                            SendREQ("GETCREDENTIAL", New JObject From {{"isNew", False}, {"status", "disposable"}}, socnum)
+                            SendREQ("GETCREDENTIAL", New JObject From {{"isNew", False}, {"status", "disposable"}, {"name", SessionList(nowsid).CredentialUserName}}, socnum)
                         ElseIf SessionList(nowsid).SessionStatus = Session.SessionFlag.AccountCredential Then
-                            SendREQ("GETCREDENTIAL", New JObject From {{"isNew", False}, {"status", "account"}}, socnum)
+                            SendREQ("GETCREDENTIAL", New JObject From {{"isNew", False}, {"status", "account"}, {"name", SessionList(nowsid).CredentialUserName}}, socnum)
                         End If
                     Else
                         SendREQ("GETCREDENTIAL", New JObject From {{"isNew", True}, {"error", ""}}, socnum)
@@ -157,6 +157,10 @@ Public Class frmMain
             End If
         Catch ex As Exception
             Print(ex.ToString)
+            Try
+                SendREQ("SHOWALERT", "INTERNAL SERVER ERROR!", socnum)
+            Catch
+            End Try
         End Try
     End Sub
 
