@@ -1,4 +1,5 @@
-﻿Imports System.Net.Sockets
+﻿Imports System.IO
+Imports System.Net.Sockets
 Imports System.Security.Cryptography
 Imports System.Text
 Imports System.Text.RegularExpressions
@@ -89,12 +90,12 @@ Public Class frmMain
                 Dim reqName As String = pmsg(0)
                 Dim reqdata As JObject
                 Try
-                    reqData = JObject.Parse(pmsg(1))
+                    reqdata = JObject.Parse(pmsg(1))
                 Catch
                     Print("[ERROR] API Request Data Json Parse Error!")
                 End Try
                 If reqName = "SESSION" Then
-                    Dim nowsid = reqData("sid")
+                    Dim nowsid = reqdata("sid")
                     If SessionList.ContainsKey(nowsid) Then
                         If SessionList(nowsid).SessionStatus = Session.SessionFlag.NoCredential Then
                             SendREQ("GETCREDENTIAL", New JObject From {{"isNew", False}, {"status", "empty"}}, socnum)
@@ -116,7 +117,7 @@ Public Class frmMain
                     nowsess.CredentialStartTime = Now
                     SessionList.Add(sid.ToString, nowsess)
                 ElseIf reqName = "TRYDISPAUTH" Then
-                    Dim nowsid = reqData("sid")
+                    Dim nowsid = reqdata("sid")
                     If SessionList.ContainsKey(nowsid) Then
                         If Not SessionList(nowsid).SessionStatus = Session.SessionFlag.NoCredential Then
                             SendREQ("TRYDISPAUTH", New JObject From {{"status", False}, {"error", "ILLEGAL_CREDENTIAL"}}, socnum)
@@ -152,6 +153,30 @@ Public Class frmMain
                         End If
                     Else
                         SendREQ("TRYDISPAUTH", New JObject From {{"status", False}, {"error", "INVALID_SESSION"}}, socnum)
+                    End If
+                ElseIf reqName = "GETIMGLIST" Then
+                    Dim nowsid = reqdata("sid")
+                    If SessionList.ContainsKey(nowsid) Then
+                        Dim nowpath = reqdata("dir").ToString
+                        nowpath = Replace(nowpath, "/", "\")
+                        nowpath = EscapeFilePath(nowpath)
+                        Dim fileopener As Object = Project.Hamfile.CopyMe()
+                        Print(SessionList(nowsid).CredentialUserName & "->" & Application.StartupPath + nowpath + "\imglist.lst")
+                        fileopener.SetFile(Application.StartupPath & "\image" & nowpath + "\imglist.lst", Encoding.UTF8)
+                        If fileopener.Exist() Then
+                            Dim nowlist = Split(fileopener.ReadText(), vbCrLf)
+                            'ALBUM,TEST1,테스트 앨범 제목 1,테스트 앨범 제목 2,NONE 썸네일,ALL 권한
+                            Dim listtojson As New JArray
+                            For Each nowele As String In nowlist
+                                Dim nowprop As String() = Split(nowele, ",")
+                                listtojson.Add(New JObject From {{"type", nowprop(0)}, {"dir", nowprop(1)}, {"title", nowprop(2)}, {"detail", nowprop(3)}})
+                            Next
+                            SendREQ("GETIMGLIST", New JObject From {{"status", True}, {"result", listtojson}}, socnum)
+                        Else
+                            SendREQ("GETIMGLIST", New JObject From {{"status", False}, {"error", "INVALID_PATH"}}, socnum)
+                        End If
+                    Else
+                        SendREQ("GETIMGLIST", New JObject From {{"status", False}, {"error", "INVALID_SESSION"}}, socnum)
                     End If
                 End If
             End If
@@ -318,5 +343,11 @@ Public Class frmMain
             stringBuilder.AppendFormat("{0:x2}", b)
         Next
         Return stringBuilder.ToString()
+    End Function
+
+    Public Shared Function EscapeFilePath(ByVal s As String) As String
+        Dim regex As Regex = New Regex(String.Format("[{0}]", Regex.Escape(New String(Path.GetInvalidFileNameChars()))))
+        s = regex.Replace(s, "")
+        Return s
     End Function
 End Class
