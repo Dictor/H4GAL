@@ -8,7 +8,7 @@
   width: 100%;
   padding: 0;
 }
-.row-fluid {height: 100%; display:table-cell; vertical-align: middle;}
+.index-row-fluid {height: 100%; display:table-cell; vertical-align: middle;}
 .centering {
   float:none;
   margin:0 auto;
@@ -18,4 +18,10 @@ html, body{height:100%; margin:0;padding:0}
 
 body {background-color : #ffffff;}	
 .kakaologin{background-image: url("../img/kakaologin.png"); width: 285px; height: 46.5px; margin: auto; background-size: contain;} 
-.menudiv{width: 100%;} .menudiv > div{height: 100%; display: table-cell; float: none;}
+.menudiv{width: 100%; display: table;} .menudiv > div{height: 100%; display: table-cell; float: none;}
+
+.imgdiv{padding-top: 10px;}
+.imgdiv .thumbnail{max-width: 300px; margin: auto;}
+.imgdiv .caption{padding: 3px;}
+.imgdiv .thtitle{margin-bottom: 2px; font-weight: bold; font-size: 1.3em;}
+.imgdiv .thdetail{margin-bottom: 5px;}
