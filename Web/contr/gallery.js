@@ -49,7 +49,7 @@ var ctr_gallery = {
                         } else {
                             htmlstring += '<div class="col-md-4"><a href="#" class="thumbnail"><img src="./img/hamster.png"></a></div>';
                         }
-                        if(i % 3 == 0 && i != 0){
+                        if(i % 3 == 2 && i != 0){
                             htmlstring += '</div><div class="row imgdiv">';
                         }
                     }

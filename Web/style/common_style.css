@@ -20,7 +20,8 @@ body {background-color : #ffffff;}
 .kakaologin{background-image: url("../img/kakaologin.png"); width: 285px; height: 46.5px; margin: auto; background-size: contain;} 
 .menudiv{width: 100%; display: table;} .menudiv > div{height: 100%; display: table-cell; float: none;}
 
-.imgdiv{padding-top: 10px;}
+.imgdiv{padding-top: 10px; margin-top: 10px;}
+.imgdiv .col-md-4 {margin-top: 5px;}
 .imgdiv .thumbnail{max-width: 300px; margin: auto;}
 .imgdiv .caption{padding: 3px;}
 .imgdiv .thtitle{margin-bottom: 2px; font-weight: bold; font-size: 1.3em;}
