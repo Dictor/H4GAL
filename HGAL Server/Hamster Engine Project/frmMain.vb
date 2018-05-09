@@ -161,7 +161,7 @@ Public Class frmMain
                         nowpath = Replace(nowpath, "/", "\")
                         nowpath = EscapeFilePath(nowpath)
                         Dim fileopener As Object = Project.Hamfile.CopyMe()
-                        Print(SessionList(nowsid).CredentialUserName & "->" & Application.StartupPath + nowpath + "\imglist.lst")
+                        Print("[GETIMGLIST]" & SessionList(nowsid).CredentialUserName & "->" & Application.StartupPath + nowpath + "\imglist.lst")
                         fileopener.SetFile(Application.StartupPath & "\image" & nowpath + "\imglist.lst", Encoding.UTF8)
                         If fileopener.Exist() Then
                             Dim nowlist = Split(fileopener.ReadText(), vbCrLf)
@@ -178,8 +178,51 @@ Public Class frmMain
                     Else
                         SendREQ("GETIMGLIST", New JObject From {{"status", False}, {"error", "INVALID_SESSION"}}, socnum)
                     End If
+                ElseIf reqName = "GETIMG" Then
+                    Dim nowsid = reqdata("sid")
+                    If SessionList.ContainsKey(nowsid) Then
+                        Dim nowpath = reqdata("dir").ToString
+                        nowpath = Replace(nowpath, "/", "\")
+                        nowpath = EscapeFilePath(nowpath)
+                        Dim fileopener As Object = Project.Hamfile.CopyMe()
+                        Print("[GETIMG]" & SessionList(nowsid).CredentialUserName & "->" & Application.StartupPath & "\image\" & nowpath)
+                        fileopener.SetFile(Application.StartupPath & "\image\" & nowpath, Encoding.UTF8)
+                        If fileopener.Exist() Then
+                            Dim imgbin As Byte() = fileopener.ReadByte()
+                            Using memstr As MemoryStream = New MemoryStream(imgbin)
+                                Using binreader As BinaryReader = New BinaryReader(memstr)
+                                    Dim nowslice = 0, startaddr = 0, endaddr As Integer
+                                    Const slicesize As Integer = 1024
+                                    SendREQ("GETIMG", New JObject From {{"status", True}, {"task", "start"}, {"name", nowpath}}, socnum)
+                                    Print(imgbin.Length)
+                                    Do While True
+                                        startaddr = nowslice * 1024
+                                        endaddr = startaddr + slicesize
+                                        If endaddr >= imgbin.Length Then
+                                            endaddr = imgbin.Length - 1
+                                        End If
+                                        Dim nowbin(endaddr - startaddr) As Byte
+                                        Print(startaddr & "-" & endaddr - startaddr)
+                                        nowbin = binreader.ReadBytes(endaddr - startaddr)
+                                        Dim nowbasestr = Convert.ToBase64String(nowbin)
+                                        SendREQ("GETIMG", New JObject From {{"status", True}, {"task", "slice"}, {"slicecount", nowslice}, {"data", nowbasestr}}, socnum)
+                                        If endaddr = imgbin.Length - 1 Then
+                                            Exit Do
+                                        Else
+                                            nowslice += 1
+                                        End If
+                                    Loop
+                                    SendREQ("GETIMG", New JObject From {{"status", True}, {"task", "end"}, {"name", nowpath}}, socnum)
+                                End Using
+                            End Using
+                        Else
+                            SendREQ("GETIMG", New JObject From {{"status", False}, {"error", "INVALID_PATH"}}, socnum)
+                        End If
+                    Else
+                            SendREQ("GETIMG", New JObject From {{"status", False}, {"error", "INVALID_SESSION"}}, socnum)
+                    End If
                 End If
-            End If
+                End If
         Catch ex As Exception
             Print(ex.ToString)
             Try

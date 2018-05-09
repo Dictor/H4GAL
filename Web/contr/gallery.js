@@ -37,7 +37,7 @@ var ctr_gallery = {
                         ctr_gallery.ShowImgList();
                     }
                 }
-            } else if (reqName = "GETIMGLIST"){
+            } else if (reqName == "GETIMGLIST"){
                 if (reqData["status"]){
                     console.log(reqData);
                     var nowrow = 0, nowcol = 0;
@@ -55,6 +55,13 @@ var ctr_gallery = {
                     }
                     htmlstring += "</div>";
                     $("#imgdata").html(htmlstring);
+                    ws.makeREQ("GETIMG", {"sid": sid, "dir": "hamster.jpg"})
+                } else {
+                    alert("오류가 발생했습니다! (" + reqData["error"] + ")");
+                }
+            } else if (reqName == "GETIMG"){
+                if (reqData["status"]){
+                    console.log(reqData);
                 } else {
                     alert("오류가 발생했습니다! (" + reqData["error"] + ")");
                 }
