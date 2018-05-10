@@ -1,5 +1,7 @@
 var ctr_gallery = {
     nowdir : "/",
+    imgbase64data : {},
+    imgbindlist : {},
     init : function(){
             ws.init();
             window.onload = function() {$("#errbox").alert();};
@@ -39,16 +41,16 @@ var ctr_gallery = {
                 }
             } else if (reqName == "GETIMGLIST"){
                 if (reqData["status"]){
-                    console.log(reqData);
                     var nowrow = 0, nowcol = 0;
                     var htmlstring = '<div class="row imgdiv">';
                     for(var i = 0; i < reqData["result"].length; i++){
                         var nowele = reqData["result"][i];
                         if(nowele["type"] == "ALBUM"){
-                            htmlstring += '<div class="col-md-4"><a href="#" class="thumbnail"><img src="./img/hamster.png"><div class="caption"><p class="thtitle">' + nowele["title"] + '</p><p class="thdetail">' + nowele["detail"] + '</p></div></a></div>';
+                            htmlstring += '<div class="col-md-4"><a href="#" class="thumbnail"><img id="thimg' + i + '" src="./img/hamster.png"><div class="caption"><p class="thtitle">' + nowele["title"] + '</p><p class="thdetail">' + nowele["detail"] + '</p></div></a></div>';
                         } else {
-                            htmlstring += '<div class="col-md-4"><a href="#" class="thumbnail"><img src="./img/hamster.png"></a></div>';
+                            htmlstring += '<div class="col-md-4"><a href="#" class="thumbnail"><img id="thimg' + i + '" src="./img/hamster.png"></a></div>';
                         }
+                        ctr_gallery.imgbindlist[nowele["thimg"]] = "thimg" + i;
                         if(i % 3 == 2 && i != 0){
                             htmlstring += '</div><div class="row imgdiv">';
                         }
@@ -61,7 +63,17 @@ var ctr_gallery = {
                 }
             } else if (reqName == "GETIMG"){
                 if (reqData["status"]){
-                    console.log(reqData);
+                    if (reqData["task"] == "start"){
+                        ctr_gallery.imgbase64data[reqData["name"]] = new Array();
+                    } else if (reqData["task"] == "slice"){
+                        ctr_gallery.imgbase64data[reqData["name"]][reqData["slicecount"]] = reqData["data"];
+                    } else if (reqData["task"] == "end"){
+                        var compbase64 = "";
+                        for(var i = 0; i < (ctr_gallery.imgbase64data[reqData["name"]]).length; i++){
+                            compbase64 += ctr_gallery.imgbase64data[reqData["name"]][i];
+                        }
+                        $("#" + ctr_gallery.imgbindlist[reqData["name"]]).attr("src",window.URL.createObjectURL(b64toBlob(compbase64, "data:image")));
+                    }
                 } else {
                     alert("오류가 발생했습니다! (" + reqData["error"] + ")");
                 }

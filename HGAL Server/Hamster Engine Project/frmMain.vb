@@ -169,7 +169,7 @@ Public Class frmMain
                             Dim listtojson As New JArray
                             For Each nowele As String In nowlist
                                 Dim nowprop As String() = Split(nowele, ",")
-                                listtojson.Add(New JObject From {{"type", nowprop(0)}, {"dir", nowprop(1)}, {"title", nowprop(2)}, {"detail", nowprop(3)}})
+                                listtojson.Add(New JObject From {{"type", nowprop(0)}, {"dir", nowprop(1)}, {"title", nowprop(2)}, {"detail", nowprop(3)}, {"thimg", nowprop(4)}})
                             Next
                             SendREQ("GETIMGLIST", New JObject From {{"status", True}, {"result", listtojson}}, socnum)
                         Else
@@ -188,33 +188,21 @@ Public Class frmMain
                         Print("[GETIMG]" & SessionList(nowsid).CredentialUserName & "->" & Application.StartupPath & "\image\" & nowpath)
                         fileopener.SetFile(Application.StartupPath & "\image\" & nowpath, Encoding.UTF8)
                         If fileopener.Exist() Then
-                            Dim imgbin As Byte() = fileopener.ReadByte()
-                            Using memstr As MemoryStream = New MemoryStream(imgbin)
-                                Using binreader As BinaryReader = New BinaryReader(memstr)
-                                    Dim nowslice = 0, startaddr = 0, endaddr As Integer
-                                    Const slicesize As Integer = 1024
-                                    SendREQ("GETIMG", New JObject From {{"status", True}, {"task", "start"}, {"name", nowpath}}, socnum)
-                                    Print(imgbin.Length)
-                                    Do While True
-                                        startaddr = nowslice * 1024
-                                        endaddr = startaddr + slicesize
-                                        If endaddr >= imgbin.Length Then
-                                            endaddr = imgbin.Length - 1
-                                        End If
-                                        Dim nowbin(endaddr - startaddr) As Byte
-                                        Print(startaddr & "-" & endaddr - startaddr)
-                                        nowbin = binreader.ReadBytes(endaddr - startaddr)
-                                        Dim nowbasestr = Convert.ToBase64String(nowbin)
-                                        SendREQ("GETIMG", New JObject From {{"status", True}, {"task", "slice"}, {"slicecount", nowslice}, {"data", nowbasestr}}, socnum)
-                                        If endaddr = imgbin.Length - 1 Then
-                                            Exit Do
-                                        Else
-                                            nowslice += 1
-                                        End If
-                                    Loop
-                                    SendREQ("GETIMG", New JObject From {{"status", True}, {"task", "end"}, {"name", nowpath}}, socnum)
-                                End Using
-                            End Using
+                            Dim imgbase64str As String = Convert.ToBase64String(fileopener.ReadByte())
+                            Const slicesize As Integer = 342 * 4 'chars, 4 base64 char = 3byte
+                            Dim nowslice = 0, endslice = Math.Ceiling(imgbase64str.Length / slicesize)
+                            SendREQ("GETIMG", New JObject From {{"status", True}, {"task", "start"}, {"name", nowpath}}, socnum)
+                            Print(imgbase64str.Length)
+                            Dim nowstring As String
+                            For nowslice = 0 To endslice - 1
+                                Dim startaddr = nowslice * slicesize, endaddr = (nowslice + 1) * slicesize - 1
+                                If endaddr >= imgbase64str.Length Then
+                                    endaddr = imgbase64str.Length - 1
+                                End If
+                                nowstring = imgbase64str.Substring(startaddr, endaddr - startaddr + 1)
+                                SendREQ("GETIMG", New JObject From {{"status", True}, {"task", "slice"}, {"name", nowpath}, {"slicecount", nowslice}, {"data", nowstring}}, socnum)
+                            Next
+                            SendREQ("GETIMG", New JObject From {{"status", True}, {"task", "end"}, {"name", nowpath}}, socnum)
                         Else
                             SendREQ("GETIMG", New JObject From {{"status", False}, {"error", "INVALID_PATH"}}, socnum)
                         End If
