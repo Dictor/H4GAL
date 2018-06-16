@@ -6,12 +6,27 @@ var ctr_gallery = {
             ws.init();
             window.onload = function() {$("#errbox").alert();};
         },
-    ShowErr : function(detailtxt) {
+    showErr : function(detailtxt) {
             $("#errtxt").text(detailtxt);
             $("#errbox").show();
         },
-    ShowImgList : function() {
+    showImgList : function() {
             ws.makeREQ("GETIMGLIST", {"sid": sid, "dir": ctr_gallery.nowdir});
+        },
+    bindThumbnail : function(){
+            var delfunc = function(gap) { /* gap is in millisecs */
+                var then,now;
+                then = new Date().getTime();
+                now = then;
+                while((now - then) < gap) {
+                    now = new Date().getTime();
+                }
+            };
+            for(var key in ctr_gallery.imgbindlist){
+                ws.makeREQ("GETIMG", {"sid": sid, "dir": key});
+                delfunc(100);
+                console.log(key);
+            }
         },
     onOpen : function(evt) {
             sid = getCookie("sid");
@@ -33,10 +48,10 @@ var ctr_gallery = {
                         location.href = "index.html";
                     } else if  (reqData["status"] == "disposable"){
                         $("#txtAuthInfo").text("사용자 : [일회용]" + reqData["name"]);
-                        ctr_gallery.ShowImgList();
+                        ctr_gallery.showImgList();
                     } else if  (reqData["status"] == "account"){
                         $("#txtAuthInfo").text("사용자 : " + reqData["name"]);
-                        ctr_gallery.ShowImgList();
+                        ctr_gallery.showImgList();
                     }
                 }
             } else if (reqName == "GETIMGLIST"){
@@ -50,14 +65,14 @@ var ctr_gallery = {
                         } else {
                             htmlstring += '<div class="col-md-4"><a href="#" class="thumbnail"><img id="thimg' + i + '" src="./img/hamster.png"></a></div>';
                         }
-                        ctr_gallery.imgbindlist[nowele["thimg"]] = "thimg" + i;
+                        if(nowele["thimg"] != "NONE"){ctr_gallery.imgbindlist[nowele["thimg"]] = "thimg" + i;}
                         if(i % 3 == 2 && i != 0){
                             htmlstring += '</div><div class="row imgdiv">';
                         }
                     }
                     htmlstring += "</div>";
                     $("#imgdata").html(htmlstring);
-                    ws.makeREQ("GETIMG", {"sid": sid, "dir": "hamster.jpg"})
+                    ctr_gallery.bindThumbnail();
                 } else {
                     alert("오류가 발생했습니다! (" + reqData["error"] + ")");
                 }
@@ -80,9 +95,9 @@ var ctr_gallery = {
             }
         },
     onError : function(evt) {
-            ctr_gallery.ShowErr("서버와 연결중 오류가 발생했습니다! 페이지를 새로고쳐 재시도 하세요.");
+            ctr_gallery.showErr("서버와 연결중 오류가 발생했습니다! 페이지를 새로고쳐 재시도 하세요.");
         },
     onClose : function(evt) {
-            ctr_gallery.ShowErr("서버와 연결중 오류가 발생했습니다! 페이지를 새로고쳐 재시도 하세요."); 
+            ctr_gallery.showErr("서버와 연결중 오류가 발생했습니다! 페이지를 새로고쳐 재시도 하세요."); 
         }
 }
