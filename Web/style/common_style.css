@@ -27,3 +27,10 @@ body {background-color : #ffffff;}
 .imgdiv .caption{padding: 3px;}
 .imgdiv .thtitle{margin-bottom: 2px; font-weight: bold; font-size: 1.3em;}
 .imgdiv .thdetail{margin-bottom: 5px;}
+
+.loadPopup{display: inline-block; position: fixed; top: calc(50% - 20px); left: calc(50% - 65px); width: 130px; height: 40px; background-color: white; border: gray 1px solid; border-radius: 10%; padding-top: 5px;}
+.loadPopup p{text-align: center; font-weight: bold; font-size: 1.2em;}
+
+.viewPopup{display: inline-block; position: fixed; top: 5%; left: 5%; width: 90%; height: 90%; background-color: white; border: gray 1px solid; border-radius: 10px; padding: 15px 0px;}
+.viewPopup .title{font-size: 2.5em; font-weight: bold;}
+.viewPopup .exit{font-size: 1.5em; font-weight: bold; color: red; margin-left: 10px;}

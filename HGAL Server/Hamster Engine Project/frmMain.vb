@@ -1,8 +1,10 @@
-﻿Imports System.IO
+﻿Imports System.Drawing
+Imports System.IO
 Imports System.Net.Sockets
 Imports System.Security.Cryptography
 Imports System.Text
 Imports System.Text.RegularExpressions
+Imports System.Threading
 Imports System.Windows.Forms
 Imports Newtonsoft.Json.Linq
 
@@ -15,7 +17,7 @@ Public Class frmMain
     Delegate Sub SocCb(kind As String, args As Object())
     Private clichecktim As New System.Timers.Timer(100)
     Private DispAuthCodelist As String()
-    Dim questionSelector As Random = New Random()
+    Private totalSentByte As Long = 0
 
     Private SessionList As New Dictionary(Of String, Session)
     Private Class Session
@@ -47,6 +49,9 @@ Public Class frmMain
             fileopener.SetFile(Application.StartupPath & "\data\allowDispAuthCode.txt", Encoding.UTF8)
             DispAuthCodelist = Split(fileopener.ReadText(), vbCrLf)
             Print("[INIT]엑세스 코드 리스트 읽기 완료")
+            Print("[INIT]썸네일 검사 시작")
+            MakeThumbNail()
+            Print("[INIT]썸네일 검사 완료")
         Catch ex As Exception
             Print("[ERROR]소켓을 초기화하는중 오류가 발생했습니다!!")
             Print(ex.ToString)
@@ -56,11 +61,13 @@ Public Class frmMain
     Public Sub SocCallback(kind As String, args As Object())
         If kind = "ACCEPT" Then
             Dim clisoc As Socket = args(0)
-            Print("[ACCEPT]" & clisoc.RemoteEndPoint.ToString & " " & args(1))
+            Print("[ACCEPT]" & clisoc.RemoteEndPoint.ToString & " -> " & args(1))
         ElseIf kind = "RECEIVE" Then
             ProcessMsg(args(2), args(1))
         ElseIf kind = "SEND" Then
-            Print("[SEND] " & args(1))
+            'Print("[SEND] " & args(1) & "bytes -> ")
+            totalSentByte += Convert.ToUInt32(args(1))
+            txtSentBytes.Text = "총 전송 : " & totalSentByte.ToString & "byte"
         ElseIf kind = "DISCONNECT" Then
             Print("[DISCONN] " & args(0))
         ElseIf kind = "ERROR" Then
@@ -85,7 +92,7 @@ Public Class frmMain
                 Print("[SOCKET]" & socnum & "번 소켓에서 웹소켓 핸드셰이크")
             Else 'NON-GET REQ시
                 Dim msg As String = DecodeMessage(data)
-                Print("[SOCKET]" & socnum & "번 소켓에서 데이터 수신 : '" & msg & "'")
+                'Print("[SOCKET]" & socnum & "번 소켓에서 데이터 수신 : '" & msg & "'")
                 Dim pmsg As String() = Split(msg, "#")
                 Dim reqName As String = pmsg(0)
                 Dim reqdata As JObject
@@ -158,18 +165,30 @@ Public Class frmMain
                     Dim nowsid = reqdata("sid")
                     If SessionList.ContainsKey(nowsid) Then
                         Dim nowpath = reqdata("dir").ToString
+                        nowpath = Uri.UnescapeDataString(nowpath)
                         nowpath = Replace(nowpath, "/", "\")
-                        nowpath = EscapeFilePath(nowpath)
+                        nowpath = EscapeDirectoryPath(nowpath)
                         Dim fileopener As Object = Project.Hamfile.CopyMe()
-                        Print("[GETIMGLIST]" & SessionList(nowsid).CredentialUserName & "->" & Application.StartupPath + nowpath + "\imglist.lst")
-                        fileopener.SetFile(Application.StartupPath & "\image" & nowpath + "\imglist.lst", Encoding.UTF8)
+                        Print("[GETIMGLIST]" & SessionList(nowsid).CredentialUserName & "->" & Application.StartupPath & "\image" & nowpath + "imglist.lst")
+                        fileopener.SetFile(Application.StartupPath & "\image" & nowpath + "imglist.lst", Encoding.UTF8)
                         If fileopener.Exist() Then
                             Dim nowlist = Split(fileopener.ReadText(), vbCrLf)
                             'ALBUM,TEST1,테스트 앨범 제목 1,테스트 앨범 제목 2,NONE 썸네일,ALL 권한
                             Dim listtojson As New JArray
                             For Each nowele As String In nowlist
                                 Dim nowprop As String() = Split(nowele, ",")
-                                listtojson.Add(New JObject From {{"type", nowprop(0)}, {"dir", nowprop(1)}, {"title", nowprop(2)}, {"detail", nowprop(3)}, {"thimg", nowprop(4)}})
+                                If nowprop(0) = "AUTOPHOTO" Then
+                                    Dim imgfileobj As Object = Project.Hamfile.CopyMe()
+                                    imgfileobj.Directory.SetDirectory(Application.StartupPath & "\image" & nowpath)
+                                    Dim imgfilelst As String() = imgfileobj.Directory.GetFile()
+                                    For Each nowfile As String In imgfilelst
+                                        If isImageFilePath(nowfile) Then
+                                            listtojson.Add(New JObject From {{"type", "PHOTO"}, {"dir", nowfile.Split("\").Last}, {"title", nowfile.Split("\").Last}, {"detail", Nothing}, {"thimg", ComputeFileHash(nowfile)}, {"isautoth", True}})
+                                        End If
+                                    Next
+                                    Exit For
+                                End If
+                                listtojson.Add(New JObject From {{"type", nowprop(0)}, {"dir", nowprop(1)}, {"title", nowprop(2)}, {"detail", nowprop(3)}, {"thimg", nowprop(4)}, {"isautoth", False}})
                             Next
                             SendREQ("GETIMGLIST", New JObject From {{"status", True}, {"result", listtojson}}, socnum)
                         Else
@@ -182,35 +201,31 @@ Public Class frmMain
                     Dim nowsid = reqdata("sid")
                     If SessionList.ContainsKey(nowsid) Then
                         Dim nowpath = reqdata("dir").ToString
+                        nowpath = Uri.UnescapeDataString(nowpath)
+                        nowpath = Replace(nowpath, "/", "\")
+                        nowpath = EscapeDirectoryPath(nowpath)
+                        Dim nowthread As Thread = New Thread(Sub()
+                                                                 SendImg(nowsid, socnum, nowpath)
+                                                             End Sub)
+                        nowthread.Start()
+                    Else
+                        SendREQ("GETIMG", New JObject From {{"status", False}, {"error", "INVALID_SESSION"}}, socnum)
+                    End If
+                ElseIf reqName = "GETTHUMB" Then
+                    Dim nowsid = reqdata("sid")
+                    If SessionList.ContainsKey(nowsid) Then
+                        Dim nowpath = reqdata("thid").ToString
                         nowpath = Replace(nowpath, "/", "\")
                         nowpath = EscapeFilePath(nowpath)
-                        Dim fileopener As Object = Project.Hamfile.CopyMe()
-                        Print("[GETIMG]" & SessionList(nowsid).CredentialUserName & "->" & Application.StartupPath & "\image\" & nowpath)
-                        fileopener.SetFile(Application.StartupPath & "\image\" & nowpath, Encoding.UTF8)
-                        If fileopener.Exist() Then
-                            Dim imgbase64str As String = Convert.ToBase64String(fileopener.ReadByte())
-                            Const slicesize As Integer = 342 * 4 'chars, 4 base64 char = 3byte
-                            Dim nowslice = 0, endslice = Math.Ceiling(imgbase64str.Length / slicesize)
-                            SendREQ("GETIMG", New JObject From {{"status", True}, {"task", "start"}, {"name", nowpath}}, socnum)
-                            Print(imgbase64str.Length)
-                            Dim nowstring As String
-                            For nowslice = 0 To endslice - 1
-                                Dim startaddr = nowslice * slicesize, endaddr = (nowslice + 1) * slicesize - 1
-                                If endaddr >= imgbase64str.Length Then
-                                    endaddr = imgbase64str.Length - 1
-                                End If
-                                nowstring = imgbase64str.Substring(startaddr, endaddr - startaddr + 1)
-                                SendREQ("GETIMG", New JObject From {{"status", True}, {"task", "slice"}, {"name", nowpath}, {"slicecount", nowslice}, {"data", nowstring}}, socnum)
-                            Next
-                            SendREQ("GETIMG", New JObject From {{"status", True}, {"task", "end"}, {"name", nowpath}}, socnum)
-                        Else
-                            SendREQ("GETIMG", New JObject From {{"status", False}, {"error", "INVALID_PATH"}}, socnum)
-                        End If
+                        Dim nowthread As Thread = New Thread(Sub()
+                                                                 SendThImg(nowsid, socnum, nowpath)
+                                                             End Sub)
+                        nowthread.Start()
                     Else
-                            SendREQ("GETIMG", New JObject From {{"status", False}, {"error", "INVALID_SESSION"}}, socnum)
+                        SendREQ("GETTHUMB", New JObject From {{"status", False}, {"error", "INVALID_SESSION"}}, socnum)
                     End If
                 End If
-                End If
+            End If
         Catch ex As Exception
             Print(ex.ToString)
             Try
@@ -224,10 +239,161 @@ Public Class frmMain
         ServerSoc.Send(CreateFrame(APIname + "#" + APIdata.ToString), socnum)
     End Sub
 
-    Public Sub Print(data As String)
-        lstLog.Items.Add(data)
-        lstLog.SelectedIndex = lstLog.Items.Count - 1
+    Private Sub SendImg(nowsid As String, socnum As Integer, imgdir As String)
+        Dim fileopener As Object = Project.Hamfile.CopyMe()
+        Print("[GETIMG](" & Thread.CurrentThread.GetHashCode & ")" & SessionList(nowsid).CredentialUserName & "->" & Application.StartupPath & "\image" & imgdir)
+        fileopener.SetFile(Application.StartupPath & "\image" & imgdir, Encoding.UTF8)
+        If fileopener.Exist() Then
+            Dim imgbase64str As String = Convert.ToBase64String(fileopener.ReadByte())
+            Const slicesize As Integer = 342 * 4 'chars, 4 base64 char = 3byte
+            Dim nowslice = 0, endslice = Math.Ceiling(imgbase64str.Length / slicesize)
+            SendREQ("GETIMG", New JObject From {{"status", True}, {"task", "start"}, {"name", imgdir.Replace("\", "/")}}, socnum)
+            Dim nowstring As String
+            For nowslice = 0 To endslice - 1
+                Dim startaddr = nowslice * slicesize, endaddr = (nowslice + 1) * slicesize - 1
+                If endaddr >= imgbase64str.Length Then
+                    endaddr = imgbase64str.Length - 1
+                End If
+                nowstring = imgbase64str.Substring(startaddr, endaddr - startaddr + 1)
+                SendREQ("GETIMG", New JObject From {{"status", True}, {"task", "slice"}, {"name", imgdir.Replace("\", "/")}, {"slicecount", nowslice}, {"data", nowstring}}, socnum)
+            Next
+            SendREQ("GETIMG", New JObject From {{"status", True}, {"task", "end"}, {"name", imgdir.Replace("\", "/")}}, socnum)
+        Else
+            SendREQ("GETIMG", New JObject From {{"status", False}, {"error", "INVALID_PATH"}}, socnum)
+        End If
+    End Sub
+
+    Private Sub SendThImg(nowsid As String, socnum As Integer, thid As String)
         Try
+            Dim fileopener As Object = Project.Hamfile.CopyMe()
+            'Print("[GETTHUMB](" & Thread.CurrentThread.GetHashCode & ")" & SessionList(nowsid).CredentialUserName & "-> THID : " & thid)
+            fileopener.Directory.SetDirectory(Application.StartupPath & "\thumb\")
+            Dim resfile As String = ""
+            For Each nowf As String In fileopener.Directory.GetFile()
+                If nowf.Split("\").Last.Contains(thid) Then
+                    resfile = nowf
+                End If
+            Next
+            If resfile = "" Then
+                SendREQ("GETTHUMB", New JObject From {{"status", False}, {"error", "INVALID_THID"}}, socnum)
+                Exit Sub
+            End If
+            fileopener.SetFile(resfile, Encoding.UTF8)
+
+            If fileopener.Exist() Then
+                Dim imgbase64str As String = Convert.ToBase64String(fileopener.ReadByte())
+                Const slicesize As Integer = 342 * 4 'chars, 4 base64 char = 3byte
+                Dim nowslice = 0, endslice = Math.Ceiling(imgbase64str.Length / slicesize)
+                SendREQ("GETTHUMB", New JObject From {{"status", True}, {"task", "start"}, {"name", thid}}, socnum)
+                Dim nowstring As String
+                For nowslice = 0 To endslice - 1
+                    Dim startaddr = nowslice * slicesize, endaddr = (nowslice + 1) * slicesize - 1
+                    If endaddr >= imgbase64str.Length Then
+                        endaddr = imgbase64str.Length - 1
+                    End If
+                    nowstring = imgbase64str.Substring(startaddr, endaddr - startaddr + 1)
+                    SendREQ("GETTHUMB", New JObject From {{"status", True}, {"task", "slice"}, {"name", thid}, {"slicecount", nowslice}, {"data", nowstring}}, socnum)
+                Next
+                SendREQ("GETTHUMB", New JObject From {{"status", True}, {"task", "end"}, {"name", thid}}, socnum)
+            Else
+                SendREQ("GETTHUMB", New JObject From {{"status", False}, {"error", "INVALID_PATH"}}, socnum)
+            End If
+        Catch ex As Exception
+            Print(ex.ToString)
+            Try
+                SendREQ("SHOWALERT", "INTERNAL SERVER ERROR!", socnum)
+            Catch
+            End Try
+        End Try
+    End Sub
+
+    Private Class FileEntry
+        Public isDirectory As Boolean
+        Public Path As String
+
+        Public Sub New(d As Boolean, p As String)
+            isDirectory = d
+            Path = p
+        End Sub
+    End Class
+
+    Private imgext As New List(Of String) From {"gif", "bmp", "jpg", "png"}
+    Private Sub MakeThumbNail()
+        Try
+            Dim fileobj As Object = Project.Hamfile.CopyMe()
+            Dim entrystack As New Stack
+            fileobj.Directory.SetDirectory(Application.StartupPath & "\image\")
+            ExploreDirectory(entrystack, Application.StartupPath & "\image\")
+
+            Do Until entrystack.Count = 0
+                Try
+                    Dim nowe As FileEntry = entrystack.Pop
+
+                    If nowe.isDirectory Then
+                        ExploreDirectory(entrystack, nowe.Path)
+                    Else
+                        Dim nowehash = ComputeFileHash(nowe.Path)
+                        Dim thpath = Path.ChangeExtension(Application.StartupPath & "\thumb\" & nowehash, GetFileType(nowe.Path))
+                        Dim filechkobj As Object = Project.Hamfile.CopyMe()
+                        filechkobj.SetFile(thpath, Encoding.UTF8)
+                        If Not filechkobj.Exist() Then
+                            If isImageFilePath(nowe.Path) Then
+                                Print("[THUMB] '" & nowe.Path & "' -> (" & thpath & ")의 썸네일 생성 시작")
+                                Dim img As Image = Image.FromFile(nowe.Path)
+                                Dim th As Image = img.GetThumbnailImage(480, 320, Function() False, IntPtr.Zero)
+                                th.Save(thpath)
+                                th.Dispose()
+                                img.Dispose()
+                                Print("[THUMB] 썸네일 생성 완료")
+                            End If
+                        End If
+                    End If
+                Catch ex As Exception
+                    Print("[THUMB] 개별 사진 처리중 오류 발생 " & ex.ToString)
+                Finally
+                    Application.DoEvents()
+                End Try
+            Loop
+        Catch ex As Exception
+            Print("[THUMB] 초기화 중 오류 발생 " & ex.ToString)
+        End Try
+    End Sub
+
+    Private Function GetFileType(Path As String) As String
+        Return Path.Split(".").Last
+    End Function
+
+    Private Function isImageFilePath(Path As String) As Boolean
+        Return imgext.Contains(GetFileType(Path).ToLower)
+    End Function
+
+    Private Function ComputeFileHash(path As String) As String
+        Using hashobj As MD5 = MD5.Create
+            Using stream As FileStream = File.OpenRead(path)
+                Return BitConverter.ToString(hashobj.ComputeHash(stream)).Replace("-", "").ToLowerInvariant()
+            End Using
+        End Using
+    End Function
+
+    Private Sub ExploreDirectory(ByRef stack As Stack, path As String)
+        Dim fileobj As Object = Project.Hamfile.CopyMe()
+        fileobj.Directory.SetDirectory(path)
+        Dim entry As String() = fileobj.Directory.GetFile()
+        For Each e In entry
+            Dim nowe = New FileEntry(False, e)
+            stack.Push(nowe)
+        Next
+        entry = fileobj.Directory.GetDirectory()
+        For Each e In entry
+            Dim nowe = New FileEntry(True, e)
+            stack.Push(nowe)
+        Next
+    End Sub
+
+    Public Sub Print(data As String)
+        Try
+            lstLog.Items.Add(data)
+            lstLog.SelectedIndex = lstLog.Items.Count - 1
             Project.LogWrite.DynamicInvoke(data)
         Catch
         End Try
@@ -378,6 +544,12 @@ Public Class frmMain
 
     Public Shared Function EscapeFilePath(ByVal s As String) As String
         Dim regex As Regex = New Regex(String.Format("[{0}]", Regex.Escape(New String(Path.GetInvalidFileNameChars()))))
+        s = regex.Replace(s, "")
+        Return s
+    End Function
+
+    Public Shared Function EscapeDirectoryPath(ByVal s As String) As String
+        Dim regex As Regex = New Regex(String.Format("[{0}]", Regex.Escape(New String(Path.GetInvalidPathChars()))))
         s = regex.Replace(s, "")
         Return s
     End Function
