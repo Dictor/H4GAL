@@ -118,7 +118,12 @@ var ctr_gallery = {
                         $("#" + ctr_gallery.imgbindlist[reqData["name"]]).attr("src",window.URL.createObjectURL(b64toBlob(compbase64, "data:image")));
                         if (ctr_gallery.imgbindlist[reqData["name"]] == "vpimg"){
                             $(".loadPopup").hide();
+                            $("#vptitle").text(reqData["name"].split("/").slice(-1).pop());
                             $(".viewPopup").show();
+                            ctr_gallery.resizevpimg();
+                            $(window).resize(function(){
+                                ctr_gallery.resizevpimg();
+                            });
                         }
                     }
                 } else {
@@ -142,6 +147,20 @@ var ctr_gallery = {
                 }
             }
         },
+    resizevpimg : function() {
+        if($("#vpimgcover").width() >= $("#vpimgcover").height()){
+            var calch = $("#vpimgcover").height() - ( $("#vptitle").outerHeight(true)+ $("#vpdesc").outerHeight(true));
+            $("#vpimg").outerHeight(calch);
+            $("#vpimg").width("auto");
+            if($("#vpimg").width() > $("#vpimgcover").width()){
+                $("#vpimg").outerWidth($("#vpimgcover").width());
+                $("#vpimg").height("auto");
+            }
+        } else {
+            $("#vpimg").outerWidth($("#vpimgcover").width());
+            $("#vpimg").height("auto");
+        }
+    },
     onError : function(evt) {
             ctr_gallery.showErr("서버와 연결중 오류가 발생했습니다! 페이지를 새로고쳐 재시도 하세요.");
         },
