@@ -35,6 +35,9 @@ body {background-color : #ffffff;}
 .viewPopup #vprow{height: 100%; width: 100%; box-sizing: border-box; margin: 0px;}
 .viewPopup #vpimgcover{height: 100%;}
 .viewPopup #vpimg{margin: 0;}
-.viewPopup .title{font-size: 2em; font-weight: bold;}
+.viewPopup #vpimginfo{width: 100%;}
+.viewPopup .title{font-size: 1.7em; font-weight: bold;}
 .viewPopup .desc{display: none;}
-.viewPopup .exit{font-size: 1.5em; font-weight: bold; color: red; margin-left: 10px;}
+.viewPopup .exit{font-size: 1.5em; font-weight: bold; color: red; margin-left: 10px; margin-bottom: 0;}
+.vpother_vert{display: block; width: 100%;}
+.vpother_horz{display: inline-block; width: 25%;}

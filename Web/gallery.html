@@ -92,17 +92,20 @@
         </div>
         <div class="viewPopup">
             <div class="row" id="vprow">
-                <div class="col-md-1">
-                    <p class="exit" onclick="$('.viewPopup').hide();">X</p>
+                <div class="col-md-1" id="vpimgbefore">
+                    <p class="exit" onclick="$('.viewPopup').hide();">×</p>
                 </div>
                 <div class="col-md-8" id="vpimgcover">
                     <p id="vptitle" class="title">TITLE</p>
                     <img id="vpimg" src="./img/hamster.png">
-                    <p id="vpdesc" class="desc">DESC</p>
                 </div>
-                <div class="col-md-2">
-                </div>
-                <div class="col-md-1">
+                <div class="col-md-3">
+                    <div id="vpother">
+                        <a id="vpfiledw" style="display: none;"></a>
+                        <button class="btn btn-default btn-block vpothercont" style="margin-top: 5px;" onclick="ctr_gallery.showImgPopup($('#vpimg').attr('src'))">전체화면으로 보기</button>
+                        <button class="btn btn-default btn-block vpothercont" onclick="document.getElementById('vpfiledw').click()">사진 저장</button>
+                        <button class="btn btn-default btn-block vpothercont">공유</button>
+                    </div>
                 </div>
             </div>
         </div>

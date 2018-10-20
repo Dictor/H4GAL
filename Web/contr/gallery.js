@@ -120,6 +120,8 @@ var ctr_gallery = {
                             $(".loadPopup").hide();
                             $("#vptitle").text(reqData["name"].split("/").slice(-1).pop());
                             $(".viewPopup").show();
+                            $("#vpfiledw").attr("href", $('#vpimg').attr('src'));
+                            $("#vpfiledw").attr("download", $("#vptitle").text());
                             ctr_gallery.resizevpimg();
                             $(window).resize(function(){
                                 ctr_gallery.resizevpimg();
@@ -148,18 +150,39 @@ var ctr_gallery = {
             }
         },
     resizevpimg : function() {
-        if($("#vpimgcover").width() >= $("#vpimgcover").height()){
-            var calch = $("#vpimgcover").height() - ( $("#vptitle").outerHeight(true)+ $("#vpdesc").outerHeight(true));
+        var picdispW = $("#vpimgcover").width();
+        var picdispH = $("#vprow").height();
+        if(picdispW >= picdispH){
+            var calch = 0;
+            if($("#vpimgcover").css("float") == "left"){                
+                calch = picdispH - ($("#vptitle").outerHeight(true));
+            } else {
+                calch = picdispH - ($("#vpimgbefore").outerHeight(true) + $("#vptitle").outerHeight(true) + $("#vpother").outerHeight(true));
+            }
             $("#vpimg").outerHeight(calch);
             $("#vpimg").width("auto");
-            if($("#vpimg").width() > $("#vpimgcover").width()){
-                $("#vpimg").outerWidth($("#vpimgcover").width());
+            if($("#vpimg").width() > picdispW){
+                $("#vpimg").outerWidth(picdispW);
                 $("#vpimg").height("auto");
             }
+            $("#vpimgcover").height($("#vpimg").outerHeight(true) + $("#vptitle").outerHeight(true));
         } else {
-            $("#vpimg").outerWidth($("#vpimgcover").width());
+            $("#vpimg").outerWidth(picdispW);
             $("#vpimg").height("auto");
+            $("#vpimgcover").height($("#vpimg").outerHeight(true) + $("#vptitle").outerHeight(true));
         }
+        
+        if($("#vpimgcover").css("float") == "left"){
+            $(".vpothercont").addClass("vpother_vert");
+            $(".vpothercont").removeClass("vpother_horz");
+        } else {
+            $(".vpothercont").removeClass("vpother_vert");
+            $(".vpothercont").addClass("vpother_horz");
+        }
+    },
+    showImgPopup : function(url) {
+        var imgWindow = window.open("", "하늘고 4기 사진창고");
+		imgWindow.document.write("<img src='" + url + "'>");
     },
     onError : function(evt) {
             ctr_gallery.showErr("서버와 연결중 오류가 발생했습니다! 페이지를 새로고쳐 재시도 하세요.");
