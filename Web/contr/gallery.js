@@ -1,5 +1,8 @@
 var ctr_gallery = {
     nowdir : "/",
+    gimgCount : 0,
+    gthcount : 0,
+    gthnowcnt : 0,
     imgbase64data : {},
     imgbindlist : {},
     autothbindlist : {},
@@ -25,7 +28,6 @@ var ctr_gallery = {
             ctr_gallery.showImgList();
         } else {
             $(".loadPopup").show();
-            console.log(ctr_gallery.nowdir + dir);
             ctr_gallery.imgbindlist[ctr_gallery.nowdir + dir] = "vpimg";
             ws.makeREQ("GETIMG", {"sid": sid, "dir": encodeURI(ctr_gallery.nowdir + dir)});
         }
@@ -43,6 +45,7 @@ var ctr_gallery = {
                 ws.makeREQ("GETIMG", {"sid": sid, "dir": key});
                 delfunc(50);
             }
+            ctr_gallery.gthnowcnt = 0;
             for(var key in ctr_gallery.autothbindlist){
                 ws.makeREQ("GETTHUMB", {"sid": sid, "thid": key});
                 delfunc(50);
@@ -67,10 +70,10 @@ var ctr_gallery = {
                         alert("권한이 없습니다! 초기페이지로 돌아갑니다.");
                         location.href = "index.html";
                     } else if  (reqData["status"] == "disposable"){
-                        $("#txtAuthInfo").text("사용자 : [일회용]" + reqData["name"]);
+                        $(".gtitletxt").css("display") == "none" ? $("#txtAuthInfo").text("D" + reqData["name"]) : $("#txtAuthInfo").text("사용자 : D" + reqData["name"]);
                         ctr_gallery.showImgList();
                     } else if  (reqData["status"] == "account"){
-                        $("#txtAuthInfo").text("사용자 : " + reqData["name"]);
+                        $(".gtitletxt").css("display") == "none" ? $("#txtAuthInfo").text(reqData["name"]) : $("#txtAuthInfo").text("사용자 : " + reqData["name"]);
                         ctr_gallery.showImgList();
                     }
                 }
@@ -78,6 +81,7 @@ var ctr_gallery = {
                 if (reqData["status"]){
                     var htmlstring = '<div class="row imgdiv">';
                     $(".loadPopup").show();
+                    ctr_gallery.gthcount = reqData["result"].length;
                     for(var i = 0; i < reqData["result"].length; i++){
                         var nowele = reqData["result"][i];
                         if(nowele["type"] == "ALBUM"){
@@ -108,8 +112,10 @@ var ctr_gallery = {
                 if (reqData["status"]){
                     if (reqData["task"] == "start"){
                         ctr_gallery.imgbase64data[reqData["name"]] = new Array();
+                        ctr_gallery.gimgCount = Number(reqData["count"]) * 2;
                     } else if (reqData["task"] == "slice"){
                         ctr_gallery.imgbase64data[reqData["name"]][reqData["slicecount"]] = reqData["data"];
+                        $("#loadpopupPerc").text(String(Math.floor((Number(reqData["slicecount"])/ctr_gallery.gimgCount)*100)) + "%");
                     } else if (reqData["task"] == "end"){
                         var compbase64 = "";
                         for(var i = 0; i < (ctr_gallery.imgbase64data[reqData["name"]]).length; i++){
@@ -143,6 +149,8 @@ var ctr_gallery = {
                             compbase64 += ctr_gallery.imgbase64data[reqData["name"]][i];
                         }
                         $("#" + ctr_gallery.autothbindlist[reqData["name"]]).attr("src",window.URL.createObjectURL(b64toBlob(compbase64, "data:image")));
+                        ctr_gallery.gthnowcnt++;
+                        //$("#loadpopupPerc").text(String(ctr_gallery.gthnowcnt));;
                     }
                 } else {
                     alert("오류가 발생했습니다! (" + reqData["error"] + ")");

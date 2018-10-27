@@ -28,7 +28,7 @@ body {background-color : #ffffff;}
 .imgdiv .thtitle{margin-bottom: 2px; font-weight: bold; font-size: 1.3em;}
 .imgdiv .thdetail{margin-bottom: 5px;}
 
-.loadPopup{display: inline-block; position: fixed; top: calc(50% - 20px); left: calc(50% - 65px); width: 130px; height: 40px; background-color: white; border: gray 1px solid; border-radius: 10%; padding-top: 5px;}
+.loadPopup{display: inline-block; position: fixed; top: calc(50% - 20px); left: calc(50% - 90px); width: 180px; height: 40px; background-color: white; border: gray 1px solid; border-radius: 10%; padding-top: 7px;}
 .loadPopup p{text-align: center; font-weight: bold; font-size: 1.2em;}
 
 .viewPopup{display: inline-block; position: fixed; top: 5%; left: 5%; width: 90%; height: 90%; background-color: white; border: gray 1px solid; border-radius: 10px; padding: 15px 0px;}
