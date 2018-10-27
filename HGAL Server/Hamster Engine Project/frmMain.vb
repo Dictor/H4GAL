@@ -71,15 +71,18 @@ Public Class frmMain
         ElseIf kind = "DISCONNECT" Then
             Print("[DISCONN] " & args(0))
         ElseIf kind = "ERROR" Then
-            Print("[ERROR] " & args(0) & " : " & args(1).ToString)
+            If (CType(args(1), Exception).GetType.FullName = "System.Net.Sockets.SocketException") Or args(0) = "CFUNC_SEND" Then
+                If Thread.CurrentThread.Name.Contains("SEND") Then
+                    Print("[ERROR]SENDIMG or SENDTHIMG Abort")
+                    Thread.CurrentThread.Abort()
+                End If
+                Project.LogWrite.DynamicInvoke("[ERROR] " & args(0) & " : " & args(1).ToString)
+            Else
+                Print("[ERROR] " & args(0) & " : " & args(1).ToString)
+            End If
         Else
             Print("[" + kind + "]")
         End If
-    End Sub
-
-    Private Sub chkcli()
-        ServerSoc.SendAll(EncodeMessage("dummy_checkconn"))
-        ServerSoc.pCheckClientConnect()
     End Sub
 
     Private Sub ProcessMsg(data As Byte(), socnum As Integer)
@@ -207,6 +210,7 @@ Public Class frmMain
                         Dim nowthread As Thread = New Thread(Sub()
                                                                  SendImg(nowsid, socnum, nowpath)
                                                              End Sub)
+                        nowthread.Name = "SENDIMG" & socnum.ToString
                         nowthread.Start()
                     Else
                         SendREQ("GETIMG", New JObject From {{"status", False}, {"error", "INVALID_SESSION"}}, socnum)
@@ -220,6 +224,7 @@ Public Class frmMain
                         Dim nowthread As Thread = New Thread(Sub()
                                                                  SendThImg(nowsid, socnum, nowpath)
                                                              End Sub)
+                        nowthread.Name = "SENDTHIMG" & socnum.ToString
                         nowthread.Start()
                     Else
                         SendREQ("GETTHUMB", New JObject From {{"status", False}, {"error", "INVALID_SESSION"}}, socnum)
@@ -245,9 +250,9 @@ Public Class frmMain
         fileopener.SetFile(Application.StartupPath & "\image" & imgdir, Encoding.UTF8)
         If fileopener.Exist() Then
             Dim imgbase64str As String = Convert.ToBase64String(fileopener.ReadByte())
-            Const slicesize As Integer = 342 * 4 'chars, 4 base64 char = 3byte
+            Const slicesize As Integer = 342 * 40 'chars, 4 base64 char = 3byte // 342*4에서 사이즈 키움
             Dim nowslice = 0, endslice = Math.Ceiling(imgbase64str.Length / slicesize)
-            SendREQ("GETIMG", New JObject From {{"status", True}, {"task", "start"}, {"name", imgdir.Replace("\", "/")}}, socnum)
+            SendREQ("GETIMG", New JObject From {{"status", True}, {"task", "start"}, {"name", imgdir.Replace("\", "/")}, {"count", Convert.ToInt32(endslice + 1)}}, socnum)
             Dim nowstring As String
             For nowslice = 0 To endslice - 1
                 Dim startaddr = nowslice * slicesize, endaddr = (nowslice + 1) * slicesize - 1
@@ -282,7 +287,7 @@ Public Class frmMain
 
             If fileopener.Exist() Then
                 Dim imgbase64str As String = Convert.ToBase64String(fileopener.ReadByte())
-                Const slicesize As Integer = 342 * 4 'chars, 4 base64 char = 3byte
+                Const slicesize As Integer = 342 * 40 'chars, 4 base64 char = 3byte
                 Dim nowslice = 0, endslice = Math.Ceiling(imgbase64str.Length / slicesize)
                 SendREQ("GETTHUMB", New JObject From {{"status", True}, {"task", "start"}, {"name", thid}}, socnum)
                 Dim nowstring As String
@@ -553,4 +558,9 @@ Public Class frmMain
         s = regex.Replace(s, "")
         Return s
     End Function
+
+    Private Sub bthHalt_Click(sender As Object, e As EventArgs) Handles bthHalt.Click
+        ServerSoc.Shutdown()
+        Project.EngineShdw.DynamicInvoke()
+    End Sub
 End Class

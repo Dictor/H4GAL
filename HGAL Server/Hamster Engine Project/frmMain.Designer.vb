@@ -24,6 +24,7 @@ Partial Class frmMain
     Private Sub InitializeComponent()
         Me.lstLog = New System.Windows.Forms.ListBox()
         Me.txtSentBytes = New System.Windows.Forms.Label()
+        Me.bthHalt = New System.Windows.Forms.Button()
         Me.SuspendLayout()
         '
         'lstLog
@@ -47,10 +48,22 @@ Partial Class frmMain
         Me.txtSentBytes.TabIndex = 1
         Me.txtSentBytes.Text = "총 전송 : "
         '
+        'bthHalt
+        '
+        Me.bthHalt.Font = New System.Drawing.Font("맑은 고딕", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(129, Byte))
+        Me.bthHalt.ForeColor = System.Drawing.Color.Red
+        Me.bthHalt.Location = New System.Drawing.Point(731, 383)
+        Me.bthHalt.Name = "bthHalt"
+        Me.bthHalt.Size = New System.Drawing.Size(75, 23)
+        Me.bthHalt.TabIndex = 2
+        Me.bthHalt.Text = "종료"
+        Me.bthHalt.UseVisualStyleBackColor = True
+        '
         'frmMain
         '
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.ClientSize = New System.Drawing.Size(824, 448)
+        Me.Controls.Add(Me.bthHalt)
         Me.Controls.Add(Me.txtSentBytes)
         Me.Controls.Add(Me.lstLog)
         Me.MaximumSize = New System.Drawing.Size(840, 487)
@@ -64,4 +77,5 @@ Partial Class frmMain
 
     Friend WithEvents lstLog As System.Windows.Forms.ListBox
     Friend WithEvents txtSentBytes As System.Windows.Forms.Label
+    Friend WithEvents bthHalt As System.Windows.Forms.Button
 End Class
