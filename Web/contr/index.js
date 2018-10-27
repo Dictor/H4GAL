@@ -17,8 +17,8 @@ var ctr_index = {
     },
     reqdispauth : function () {
         var code = $("#txtAuthCode").val();
-        if($("#txtStuID").val() && $("#txtName").val() && code){
-            ws.makeREQ("TRYDISPAUTH", {"sid": sid, "name": encodeURIComponent($("#txtName").val()), "stuid": $("#txtStuID").val(), "code": SHA256(code + code.length)});
+        if($("#selclass").val() && $("#txtName").val() && code){     
+            ws.makeREQ("TRYDISPAUTH", {"sid": sid, "name": encodeURIComponent($("#txtName").val()), "stuid": $("#selclass").val(), "code": SHA256(code + code.length)});
         }
     },
     reqaccauth : function () {

@@ -14,6 +14,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device=width, initial-scale=1">
         <link rel="stylesheet" href="style/common_style.css">
+        <link rel = "stylesheet" href = "style/xsmall_style.css" media = "(max-width:768px)"/>
         <script src="lib/json2.js"></script>
         <script src="lib/sha256.js"></script>
 
@@ -23,7 +24,7 @@
         <script src="lib/websocket.js"></script>
         <script src="lib/cookie.js"></script>
             
-        <title>하늘고 4기 사진 저장소</title>
+        <title>하늘고 4기 남학생 사진창고</title>
     </head>
     <body>
         <script>
@@ -39,7 +40,7 @@
                         
                         <div class="row">
                             <div class="col-md-12">
-                                <p class="text" style="font-size:5em; font-weight:bold;">하늘고 4기 남학생 사진창고</p>
+                                <p class="text titletxt" style="font-size:5em; font-weight:bold;">하늘고 4기 남학생 사진창고</p>
                             </div>
                         </div>
         
@@ -65,12 +66,12 @@
                                                 <tr style="vertical-align:top">
                                                     <td style="width:50%; border-right:1px solid gray;">
                                                             <button type="button" class="btn btn-primary btn-lg" style="width:90%; height:90%;" onclick="ctr_index.showlogininput();">
-                                                                <p class="text">로그인</p>
+                                                                <p class="text btntxt">로그인</p>
                                                             </button>
                                                     </td>
                                                     <td style="width:50%;">
                                                         <button type="button" class="btn btn-warning btn-lg" style="width:90%; height:90%;" onclick="ctr_index.showdispinput();">
-                                                            <p class="text">일회용 자격증명</p>
+                                                            <p class="text btntxt">일회용 자격증명</p>
                                                         </button>
                                                     </td>
                                                 </tr>
@@ -103,10 +104,13 @@
                                                         <span class="input-group-addon">자격증명 코드</span>
                                                         <input id="txtAuthCode" type="text" class="form-control">
                                                     </div>
-                                                    <div style="margin-top: 5px; width: 49%; float: left;" class="input-group input-group-sm">
-                                                        <span class="input-group-addon">학번</span>
-                                                        <input id="txtStuID" type="number" class="form-control">
-                                                    </div>	
+                                                    <div style="margin-top: 5px; width: 49%; float: left;" class="form-group">
+                                                        <select class="form-control" id="selclass">
+                                                            <option value="30100">3-1(배성규 선생님)</option>
+                                                            <option value="30400">3-4(최정우 선생님)</option>
+                                                            <option value="30500">3-5(김원석 선생님)</option>
+                                                        </select>
+                                                    </div>
                                                     <div style="margin-top: 5px; width: 51%; padding-left: 2%;" class="input-group input-group-sm">
                                                         <span class="input-group-addon">이름</span>
                                                         <input id="txtName" type="text" class="form-control">
