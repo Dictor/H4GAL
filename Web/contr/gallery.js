@@ -1,8 +1,8 @@
 var ctr_gallery = {
     nowdir : "/",
     gimgCount : 0,
-    gthcount : 0,
-    gthnowcnt : 0,
+    photoperpage : 15,
+    nowimglst : {},
     imgbase64data : {},
     imgbindlist : {},
     autothbindlist : {},
@@ -45,7 +45,6 @@ var ctr_gallery = {
                 ws.makeREQ("GETIMG", {"sid": sid, "dir": key});
                 delfunc(50);
             }
-            ctr_gallery.gthnowcnt = 0;
             for(var key in ctr_gallery.autothbindlist){
                 ws.makeREQ("GETTHUMB", {"sid": sid, "thid": key});
                 delfunc(50);
@@ -79,31 +78,15 @@ var ctr_gallery = {
                 }
             } else if (reqName == "GETIMGLIST"){
                 if (reqData["status"]){
-                    var htmlstring = '<div class="row imgdiv">';
-                    $(".loadPopup").show();
-                    ctr_gallery.gthcount = reqData["result"].length;
-                    for(var i = 0; i < reqData["result"].length; i++){
-                        var nowele = reqData["result"][i];
-                        if(nowele["type"] == "ALBUM"){
-                            htmlstring += '<div class="col-md-4" onclick="ctr_gallery.go(true,' + "'" + nowele["dir"] + "'" + ');"><a class="thumbnail"><img id="thimg' + i + '" src="./img/hamster.png"><div class="caption"><p class="thtitle">' + nowele["title"] + '</p><p class="thdetail">' + nowele["detail"] + '</p></div></a></div>';
-                        } else {
-                            htmlstring += '<div class="col-md-4" onclick="ctr_gallery.go(false,' + "'" + nowele["dir"] + "'" + ');"><a class="thumbnail"><img id="thimg' + i + '" src="./img/hamster.png"><div class="caption"><p class="thtitle">' + nowele["title"] + '</p></div></a></div>';
-                        }
-                        if(nowele["thimg"] != "NONE"){
-                            if(nowele["isautoth"] == true){
-                                ctr_gallery.autothbindlist[nowele["thimg"]] = "thimg" + i;
-                            } else {
-                                ctr_gallery.imgbindlist[nowele["thimg"]] = "thimg" + i;
-                            }
-                        }
-                        if(i % 3 == 2 && i != 0){
-                            htmlstring += '</div><div class="row imgdiv">';
-                        }
-                    }
-                    htmlstring += "</div>";
-                    $("#imgdata").html(htmlstring);
-                    ctr_gallery.bindThumbnail();
-                    $(".loadPopup").hide();
+                    $('.page').bootpag({
+                        total: Math.ceil(reqData["result"].length / ctr_gallery.photoperpage),
+                        page: 1,
+                        maxVisible: 10
+                     }).on('page', function(event, num){
+                        ctr_gallery.showpage(num)
+                     });
+                    ctr_gallery.nowimglst = $.extend(true, {}, reqData["result"]);
+                    ctr_gallery.showpage(1)
                 } else {
                     alert("오류가 발생했습니다! (" + reqData["error"] + ")");
                     ctr_gallery.nowdir = "/";
@@ -112,7 +95,7 @@ var ctr_gallery = {
                 if (reqData["status"]){
                     if (reqData["task"] == "start"){
                         ctr_gallery.imgbase64data[reqData["name"]] = new Array();
-                        ctr_gallery.gimgCount = Number(reqData["count"]) * 2;
+                        ctr_gallery.gimgCount = Number(reqData["count"]);
                     } else if (reqData["task"] == "slice"){
                         ctr_gallery.imgbase64data[reqData["name"]][reqData["slicecount"]] = reqData["data"];
                         $("#loadpopupPerc").text(String(Math.floor((Number(reqData["slicecount"])/ctr_gallery.gimgCount)*100)) + "%");
@@ -149,14 +132,36 @@ var ctr_gallery = {
                             compbase64 += ctr_gallery.imgbase64data[reqData["name"]][i];
                         }
                         $("#" + ctr_gallery.autothbindlist[reqData["name"]]).attr("src",window.URL.createObjectURL(b64toBlob(compbase64, "data:image")));
-                        ctr_gallery.gthnowcnt++;
-                        //$("#loadpopupPerc").text(String(ctr_gallery.gthnowcnt));;
                     }
                 } else {
                     alert("오류가 발생했습니다! (" + reqData["error"] + ")");
                 }
             }
         },
+    showpage : function(pagenum) {
+        $(".loadPopup").show();
+        var htmlstring = '<div class="row imgdiv">';
+        ctr_gallery.autothbindlist = {};
+        for(var i = ctr_gallery.photoperpage * (pagenum - 1); i < (ctr_gallery.photoperpage * (pagenum - 1)) + ctr_gallery.photoperpage; i++){
+            if (!ctr_gallery.nowimglst[i]) break;
+            var nowele = ctr_gallery.nowimglst[i];
+            if(nowele["type"] == "ALBUM"){
+                htmlstring += '<div class="col-md-4" onclick="ctr_gallery.go(true,' + "'" + nowele["dir"] + "'" + ');"><a class="thumbnail"><img id="thimg' + i + '" src="./img/hamster.png"><div class="caption"><p class="thtitle">' + nowele["title"] + '</p><p class="thdetail">' + nowele["detail"] + '</p></div></a></div>';
+            } else {
+                htmlstring += '<div class="col-md-4" onclick="ctr_gallery.go(false,' + "'" + nowele["dir"] + "'" + ');"><a class="thumbnail"><img id="thimg' + i + '" src="./img/hamster.png"><div class="caption"><p class="thtitle">' + nowele["title"] + '</p></div></a></div>';
+            }
+            if(nowele["thimg"] != "NONE"){
+                ctr_gallery.autothbindlist[nowele["thimg"]] = "thimg" + i;
+            }
+            if(i % 3 == 2 && i != 0){
+                htmlstring += '</div><div class="row imgdiv">';
+            }
+        }
+        htmlstring += "</div>";
+        $("#imgdata").html(htmlstring);
+        ctr_gallery.bindThumbnail();
+        $(".loadPopup").hide();
+    },
     resizevpimg : function() {
         var picdispW = $("#vpimgcover").width();
         var picdispH = $("#vprow").height();

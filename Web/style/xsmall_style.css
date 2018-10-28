@@ -1,5 +1,7 @@
 .btntxt {font-size: 0.7em;}
 .titletxt {font-size: 1.7em !important;}
+.pagination>li>a{padding: 6px 7px;}
+.pagination{margin-bottom: 0;}
 
 .gtitletxt {display: none;}
 #txtAuthInfo {font-size: 0.7em; padding-left: 20px;}
