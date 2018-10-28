@@ -76,9 +76,14 @@ Public Class frmMain
                     Print("[ERROR]SENDIMG or SENDTHIMG Abort")
                     Thread.CurrentThread.Abort()
                 End If
-                Project.LogWrite.DynamicInvoke("[ERROR] " & args(0) & " : " & args(1).ToString)
+                Project.LogWrite.DynamicInvoke("[ERROR] (" & args(2).ToString() & ")" & args(0) & " : " & args(1).ToString)
             Else
-                Print("[ERROR] " & args(0) & " : " & args(1).ToString)
+                Try
+                    ServerSoc.CloseClient(args(2).ToString())
+                Catch ex As Exception
+                    Project.LogWrite.DynamicInvoke("[ERROR]Client Socket Close Fail")
+                End Try
+                Print("[ERROR] (" & args(2).ToString() & ")" & args(0) & " : " & args(1).ToString)
             End If
         Else
             Print("[" + kind + "]")
@@ -560,7 +565,11 @@ Public Class frmMain
     End Function
 
     Private Sub bthHalt_Click(sender As Object, e As EventArgs) Handles bthHalt.Click
-        ServerSoc.Shutdown()
+        Try
+            ServerSoc.Shutdown()
+        Catch
+        End Try
+
         Project.EngineShdw.DynamicInvoke()
     End Sub
 End Class
