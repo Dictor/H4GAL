@@ -33,8 +33,26 @@ Public Class frmMain
         End Enum
     End Class
 
+    <Flags()>
+    Enum ErrorModes As UInteger
+        SYSTEM_DEFAULT = 0
+        SEM_FAILCRITICALERRORS = 1
+        SEM_NOALIGNMENTFAULTEXCEPT = 4
+        SEM_NOGPFAULTERRORBOX = 2
+        SEM_NOOPENFILEERRORBOX = 32768
+    End Enum
+
+    Class NativeMethods
+        Friend Declare Function SetErrorMode Lib "kernel32.dll" (ByVal mode As ErrorModes) As ErrorModes
+    End Class
+
     Public Sub initproc()
         Print("[INIT]UI 로드 완료")
+        NativeMethods.SetErrorMode((NativeMethods.SetErrorMode(0) _
+                Or (ErrorModes.SEM_NOGPFAULTERRORBOX _
+                Or (ErrorModes.SEM_FAILCRITICALERRORS Or ErrorModes.SEM_NOOPENFILEERRORBOX))))
+        Print("[INIT]윈도우 오류 다이얼로그 비활성 완료")
+
         Print("[INIT]" & Project.Version.GetName & "  " & Project.Version.GetVersion(True))
         Try
             ServerSoc = Project.Hamsoc.CopyMe()
