@@ -48,9 +48,13 @@ Public Class frmMain
 
     Public Sub initproc()
         Print("[INIT]UI 로드 완료")
-        NativeMethods.SetErrorMode((NativeMethods.SetErrorMode(0) _
-                Or (ErrorModes.SEM_NOGPFAULTERRORBOX _
-                Or (ErrorModes.SEM_FAILCRITICALERRORS Or ErrorModes.SEM_NOOPENFILEERRORBOX))))
+        NativeMethods.SetErrorMode((ErrorModes.SEM_NOGPFAULTERRORBOX) Or (ErrorModes.SEM_FAILCRITICALERRORS Or ErrorModes.SEM_NOOPENFILEERRORBOX))
+        AddHandler Application.ThreadException, New Threading.ThreadExceptionEventHandler(Sub(sender As Object, info As Threading.ThreadExceptionEventArgs)
+                                                                                              Project.EngineShdw.DynamicInvoke()
+                                                                                          End Sub)
+        AddHandler AppDomain.CurrentDomain.UnhandledException, New UnhandledExceptionEventHandler(Sub(sender As Object, info As UnhandledExceptionEventArgs)
+                                                                                                      Project.EngineShdw.DynamicInvoke()
+                                                                                                  End Sub)
         Print("[INIT]윈도우 오류 다이얼로그 비활성 완료")
 
         Print("[INIT]" & Project.Version.GetName & "  " & Project.Version.GetVersion(True))
@@ -87,7 +91,7 @@ Public Class frmMain
             totalSentByte += Convert.ToUInt32(args(1))
             txtSentBytes.Text = "총 전송 : " & totalSentByte.ToString & "byte"
         ElseIf kind = "DISCONNECT" Then
-            Print("[DISCONN] " & args(0))
+            'Print("[DISCONN] " & args(0))
         ElseIf kind = "ERROR" Then
             If (CType(args(1), Exception).GetType.FullName = "System.Net.Sockets.SocketException") Or args(0) = "CFUNC_SEND" Then
                 If Thread.CurrentThread.Name.Contains("SEND") Then
@@ -111,7 +115,6 @@ Public Class frmMain
     Private Sub ProcessMsg(data As Byte(), socnum As Integer)
         Try
             Dim httpmsg = Encoding.UTF8.GetString(data)
-
             If New Regex("^GET").IsMatch(httpmsg) Then 'GET REQ시	
                 Dim response As [Byte]() = Encoding.UTF8.GetBytes("HTTP/1.1 101 Switching Protocols" + Environment.NewLine + "Connection: Upgrade" + Environment.NewLine + "Upgrade: websocket" + Environment.NewLine + "Sec-WebSocket-Accept: " + Convert.ToBase64String(SHA1.Create().ComputeHash(Encoding.UTF8.GetBytes(New Regex("Sec-WebSocket-Key: (.*)").Match(httpmsg).Groups(1).Value.Trim() + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"))) + Environment.NewLine + Environment.NewLine)
                 ServerSoc.Send(response, socnum)
