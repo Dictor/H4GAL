@@ -125,6 +125,8 @@ Public Class frmMain
                 Dim response As [Byte]() = Encoding.UTF8.GetBytes("HTTP/1.1 101 Switching Protocols" + Environment.NewLine + "Connection: Upgrade" + Environment.NewLine + "Upgrade: websocket" + Environment.NewLine + "Sec-WebSocket-Accept: " + Convert.ToBase64String(SHA1.Create().ComputeHash(Encoding.UTF8.GetBytes(New Regex("Sec-WebSocket-Key: (.*)").Match(httpmsg).Groups(1).Value.Trim() + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"))) + Environment.NewLine + Environment.NewLine)
                 ServerSoc.Send(response, socnum)
                 EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("ProcessMsg", "[SOCKET]" & socnum & "번 소켓에서 웹소켓 핸드셰이크")
+                totalHandshake += 1
+                txtTotalHandshake.Text = totalHandshake.ToString
             Else 'NON-GET REQ시
                 Dim msg As String = DecodeMessage(data)
                 'Print("[SOCKET]" & socnum & "번 소켓에서 데이터 수신 : '" & msg & "'")
