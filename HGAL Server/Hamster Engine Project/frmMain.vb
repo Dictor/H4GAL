@@ -1,4 +1,5 @@
-﻿Imports System.Drawing
+﻿
+Imports System.Drawing
 Imports System.IO
 Imports System.Net.Sockets
 Imports System.Security.Cryptography
@@ -50,16 +51,16 @@ Public Class frmMain
         Print("[INIT]UI 로드 완료")
         NativeMethods.SetErrorMode((ErrorModes.SEM_NOGPFAULTERRORBOX) Or (ErrorModes.SEM_FAILCRITICALERRORS Or ErrorModes.SEM_NOOPENFILEERRORBOX))
         AddHandler Application.ThreadException, New Threading.ThreadExceptionEventHandler(Sub(sender As Object, info As Threading.ThreadExceptionEventArgs)
-                                                                                              Project.EngineShdw.DynamicInvoke()
+                                                                                              EngineWrapper.EngineFunction.EFUNC_EngineShutdown.DynamicInvoke()
                                                                                           End Sub)
         AddHandler AppDomain.CurrentDomain.UnhandledException, New UnhandledExceptionEventHandler(Sub(sender As Object, info As UnhandledExceptionEventArgs)
-                                                                                                      Project.EngineShdw.DynamicInvoke()
+                                                                                                      EngineWrapper.EngineFunction.EFUNC_EngineShutdown.DynamicInvoke()
                                                                                                   End Sub)
         Print("[INIT]윈도우 오류 다이얼로그 비활성 완료")
 
         Print("[INIT]" & Project.Version.GetName & "  " & Project.Version.GetVersion(True))
         Try
-            ServerSoc = Project.Hamsoc.CopyMe()
+            ServerSoc = Project.HEsock.CopyMe()
             Print("[INIT]0.0.0.0:81에서 Listen모드로 소켓을 초기화합니다.")
             ServerSoc.init(True, "0.0.0.0", 81, New SocCb(AddressOf SocCallback))
             'AddHandler clichecktim.Elapsed, AddressOf chkcli
@@ -67,7 +68,7 @@ Public Class frmMain
             ServerSoc.SetListen()
             'clichecktim.Start()
             Print("[INIT]소켓 시작 작업 완료")
-            Dim fileopener = Hamster_Engine_Project.Project.Hamfile.CopyMe()
+            Dim fileopener = Project.HEfile.CopyMe()
             fileopener.SetFile(Application.StartupPath & "\data\allowDispAuthCode.txt", Encoding.UTF8)
             DispAuthCodelist = Split(fileopener.ReadText(), vbCrLf)
             Print("[INIT]엑세스 코드 리스트 읽기 완료")
@@ -98,12 +99,12 @@ Public Class frmMain
                     Print("[ERROR]SENDIMG or SENDTHIMG Abort")
                     Thread.CurrentThread.Abort()
                 End If
-                Project.LogWrite.DynamicInvoke("[ERROR] (" & args(2).ToString() & ")" & args(0) & " : " & args(1).ToString)
+                EngineWrapper.EngineFunction.EFUNC_LogWrite.DynamicInvoke("[ERROR] (" & args(2).ToString() & ")" & args(0) & " : " & args(1).ToString)
             Else
                 Try
                     ServerSoc.CloseClient(args(2).ToString())
                 Catch ex As Exception
-                    Project.LogWrite.DynamicInvoke("[ERROR]Client Socket Close Fail")
+                    EngineWrapper.EngineFunction.EFUNC_LogWrite.DynamicInvoke("[ERROR]Client Socket Close Fail")
                 End Try
                 Print("[ERROR] (" & args(2).ToString() & ")" & args(0) & " : " & args(1).ToString)
             End If
@@ -197,7 +198,7 @@ Public Class frmMain
                         nowpath = Uri.UnescapeDataString(nowpath)
                         nowpath = Replace(nowpath, "/", "\")
                         nowpath = EscapeDirectoryPath(nowpath)
-                        Dim fileopener As Object = Project.Hamfile.CopyMe()
+                        Dim fileopener As Object = Project.HEfile.CopyMe()
                         Print("[GETIMGLIST]" & SessionList(nowsid).CredentialUserName & "->" & Application.StartupPath & "\image" & nowpath + "imglist.lst")
                         fileopener.SetFile(Application.StartupPath & "\image" & nowpath + "imglist.lst", Encoding.UTF8)
                         If fileopener.Exist() Then
@@ -207,7 +208,7 @@ Public Class frmMain
                             For Each nowele As String In nowlist
                                 Dim nowprop As String() = Split(nowele, ",")
                                 If nowprop(0) = "AUTOPHOTO" Then
-                                    Dim imgfileobj As Object = Project.Hamfile.CopyMe()
+                                    Dim imgfileobj As Object = Project.HEfile.CopyMe()
                                     imgfileobj.Directory.SetDirectory(Application.StartupPath & "\image" & nowpath)
                                     Dim imgfilelst As String() = imgfileobj.Directory.GetFile()
                                     For Each nowfile As String In imgfilelst
@@ -271,7 +272,7 @@ Public Class frmMain
     End Sub
 
     Private Sub SendImg(nowsid As String, socnum As Integer, imgdir As String)
-        Dim fileopener As Object = Project.Hamfile.CopyMe()
+        Dim fileopener As Object = Project.HEfile.CopyMe()
         Print("[GETIMG](" & Thread.CurrentThread.GetHashCode & ")" & SessionList(nowsid).CredentialUserName & "->" & Application.StartupPath & "\image" & imgdir)
         fileopener.SetFile(Application.StartupPath & "\image" & imgdir, Encoding.UTF8)
         If fileopener.Exist() Then
@@ -296,7 +297,7 @@ Public Class frmMain
 
     Private Sub SendThImg(nowsid As String, socnum As Integer, thid As String)
         Try
-            Dim fileopener As Object = Project.Hamfile.CopyMe()
+            Dim fileopener As Object = Project.HEfile.CopyMe()
             'Print("[GETTHUMB](" & Thread.CurrentThread.GetHashCode & ")" & SessionList(nowsid).CredentialUserName & "-> THID : " & thid)
             fileopener.Directory.SetDirectory(Application.StartupPath & "\thumb\")
             Dim resfile As String = ""
@@ -351,7 +352,7 @@ Public Class frmMain
     Private imgext As New List(Of String) From {"gif", "bmp", "jpg", "png"}
     Private Sub MakeThumbNail()
         Try
-            Dim fileobj As Object = Project.Hamfile.CopyMe()
+            Dim fileobj As Object = Project.HEfile.CopyMe()
             Dim entrystack As New Stack
             fileobj.Directory.SetDirectory(Application.StartupPath & "\image\")
             ExploreDirectory(entrystack, Application.StartupPath & "\image\")
@@ -365,7 +366,7 @@ Public Class frmMain
                     Else
                         Dim nowehash = ComputeFileHash(nowe.Path)
                         Dim thpath = Path.ChangeExtension(Application.StartupPath & "\thumb\" & nowehash, GetFileType(nowe.Path))
-                        Dim filechkobj As Object = Project.Hamfile.CopyMe()
+                        Dim filechkobj As Object = Project.HEfile.CopyMe()
                         filechkobj.SetFile(thpath, Encoding.UTF8)
                         If Not filechkobj.Exist() Then
                             If isImageFilePath(nowe.Path) Then
@@ -407,7 +408,7 @@ Public Class frmMain
     End Function
 
     Private Sub ExploreDirectory(ByRef stack As Stack, path As String)
-        Dim fileobj As Object = Project.Hamfile.CopyMe()
+        Dim fileobj As Object = Project.HEfile.CopyMe()
         fileobj.Directory.SetDirectory(path)
         Dim entry As String() = fileobj.Directory.GetFile()
         For Each e In entry
@@ -425,7 +426,7 @@ Public Class frmMain
         Try
             lstLog.Items.Add(data)
             lstLog.SelectedIndex = lstLog.Items.Count - 1
-            Project.LogWrite.DynamicInvoke(data)
+            EngineWrapper.EngineFunction.EFUNC_LogWrite.DynamicInvoke(data)
         Catch
         End Try
     End Sub
@@ -588,9 +589,8 @@ Public Class frmMain
     Private Sub bthHalt_Click(sender As Object, e As EventArgs) Handles bthHalt.Click
         Try
             ServerSoc.Shutdown()
-        Catch
+        Finally
+            EngineWrapper.EngineFunction.EFUNC_EngineShutdown.DynamicInvoke()
         End Try
-
-        Project.EngineShdw.DynamicInvoke()
     End Sub
 End Class

@@ -8,17 +8,17 @@ Imports System.Runtime.InteropServices
 
 ' 어셈블리 특성 값을 검토합니다.
 
-<Assembly: AssemblyTitle("Project")> 
-<Assembly: AssemblyDescription("")> 
-<Assembly: AssemblyCompany("")> 
-<Assembly: AssemblyProduct("Project")> 
-<Assembly: AssemblyCopyright("Copyright ©  2017")> 
-<Assembly: AssemblyTrademark("")> 
+<Assembly: AssemblyTitle("Hamster Engine Project Template")>
+<Assembly: AssemblyDescription("Default Template of Hamster Engine")>
+<Assembly: AssemblyCompany("Criecinae Software")>
+<Assembly: AssemblyProduct("Hamster Engine")>
+<Assembly: AssemblyCopyright("Copyright 2019 Criecinae Software")>
+<Assembly: AssemblyTrademark("Hamster Engine")>
 
 <Assembly: ComVisible(False)>
 
 '이 프로젝트가 COM에 노출되는 경우 다음 GUID는 typelib의 ID를 나타냅니다.
-<Assembly: Guid("f4798491-dbd7-4494-8e32-3e26849b4c69")> 
+<Assembly: Guid("f4798491-dbd7-4494-8e32-3e26849b4c69")>
 
 ' 어셈블리의 버전 정보는 다음 네 가지 값으로 구성됩니다.
 '
@@ -31,5 +31,5 @@ Imports System.Runtime.InteropServices
 ' 지정되도록 할 수 있습니다.
 ' <Assembly: AssemblyVersion("1.0.*")> 
 
-<Assembly: AssemblyVersion("1.0.0.0")> 
+<Assembly: AssemblyVersion("1.0.*")>
 <Assembly: AssemblyFileVersion("1.0.0.0")> 
