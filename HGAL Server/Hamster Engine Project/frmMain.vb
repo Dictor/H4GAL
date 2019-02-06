@@ -18,9 +18,12 @@ Public Class frmMain
     Delegate Sub SocCb(kind As String, args As Object())
     Private clichecktim As New System.Timers.Timer(100)
     Private DispAuthCodelist As String()
-    Private totalSentByte As Long = 0
-
     Private SessionList As New Dictionary(Of String, Session)
+
+    Private totalSentByte As Long = 0
+    Private totalHandshake As Long = 0
+    Private totalAccept As Long = 0
+
     Private Class Session
         Public SocketNumber As Integer
         Public SessionStatus As SessionFlag = SessionFlag.NoCredential
@@ -84,22 +87,24 @@ Public Class frmMain
     Public Sub SocCallback(kind As String, args As Object())
         If kind = "ACCEPT" Then
             Dim clisoc As Socket = args(0)
-            Print("[ACCEPT]" & clisoc.RemoteEndPoint.ToString & " -> " & args(1))
+            EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("SocCallback", "[ACCEPT]" & clisoc.RemoteEndPoint.ToString & " -> " & args(1))
+            totalAccept += 1
+            txtTotalAccept.Text = totalAccept.ToString
         ElseIf kind = "RECEIVE" Then
             ProcessMsg(args(2), args(1))
         ElseIf kind = "SEND" Then
-            'Print("[SEND] " & args(1) & "bytes -> ")
+            EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("SocCallback", "[SEND] " & args(1) & "bytes")
             totalSentByte += Convert.ToUInt32(args(1))
             txtSentBytes.Text = "총 전송 : " & totalSentByte.ToString & "byte"
         ElseIf kind = "DISCONNECT" Then
-            'Print("[DISCONN] " & args(0))
+            EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("SocCallback", "[DISCONN] " & args(0))
         ElseIf kind = "ERROR" Then
             If (CType(args(1), Exception).GetType.FullName = "System.Net.Sockets.SocketException") Or args(0) = "CFUNC_SEND" Then
                 If Thread.CurrentThread.Name.Contains("SEND") Then
                     Print("[ERROR]SENDIMG or SENDTHIMG Abort")
                     Thread.CurrentThread.Abort()
                 End If
-                EngineWrapper.EngineFunction.EFUNC_LogWrite.DynamicInvoke("[ERROR] (" & args(2).ToString() & ")" & args(0) & " : " & args(1).ToString)
+                EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("SocCallback", "[ERROR] (" & args(2).ToString() & ")" & args(0) & " : " & args(1).ToString)
             Else
                 Try
                     ServerSoc.CloseClient(args(2).ToString())
@@ -119,7 +124,7 @@ Public Class frmMain
             If New Regex("^GET").IsMatch(httpmsg) Then 'GET REQ시	
                 Dim response As [Byte]() = Encoding.UTF8.GetBytes("HTTP/1.1 101 Switching Protocols" + Environment.NewLine + "Connection: Upgrade" + Environment.NewLine + "Upgrade: websocket" + Environment.NewLine + "Sec-WebSocket-Accept: " + Convert.ToBase64String(SHA1.Create().ComputeHash(Encoding.UTF8.GetBytes(New Regex("Sec-WebSocket-Key: (.*)").Match(httpmsg).Groups(1).Value.Trim() + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"))) + Environment.NewLine + Environment.NewLine)
                 ServerSoc.Send(response, socnum)
-                Print("[SOCKET]" & socnum & "번 소켓에서 웹소켓 핸드셰이크")
+                EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("ProcessMsg", "[SOCKET]" & socnum & "번 소켓에서 웹소켓 핸드셰이크")
             Else 'NON-GET REQ시
                 Dim msg As String = DecodeMessage(data)
                 'Print("[SOCKET]" & socnum & "번 소켓에서 데이터 수신 : '" & msg & "'")

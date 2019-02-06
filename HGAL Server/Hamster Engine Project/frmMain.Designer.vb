@@ -25,6 +25,8 @@ Partial Class frmMain
         Me.lstLog = New System.Windows.Forms.ListBox()
         Me.txtSentBytes = New System.Windows.Forms.Label()
         Me.bthHalt = New System.Windows.Forms.Button()
+        Me.txtTotalAccept = New System.Windows.Forms.Label()
+        Me.txtTotalHandshake = New System.Windows.Forms.Label()
         Me.SuspendLayout()
         '
         'lstLog
@@ -59,10 +61,32 @@ Partial Class frmMain
         Me.bthHalt.Text = "종료"
         Me.bthHalt.UseVisualStyleBackColor = True
         '
+        'txtTotalAccept
+        '
+        Me.txtTotalAccept.AutoSize = True
+        Me.txtTotalAccept.Font = New System.Drawing.Font("맑은 고딕", 10.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(129, Byte))
+        Me.txtTotalAccept.Location = New System.Drawing.Point(226, 387)
+        Me.txtTotalAccept.Name = "txtTotalAccept"
+        Me.txtTotalAccept.Size = New System.Drawing.Size(121, 19)
+        Me.txtTotalAccept.TabIndex = 3
+        Me.txtTotalAccept.Text = "총 소켓 Accept : "
+        '
+        'txtTotalHandshake
+        '
+        Me.txtTotalHandshake.AutoSize = True
+        Me.txtTotalHandshake.Font = New System.Drawing.Font("맑은 고딕", 10.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(129, Byte))
+        Me.txtTotalHandshake.Location = New System.Drawing.Point(445, 386)
+        Me.txtTotalHandshake.Name = "txtTotalHandshake"
+        Me.txtTotalHandshake.Size = New System.Drawing.Size(89, 19)
+        Me.txtTotalHandshake.TabIndex = 4
+        Me.txtTotalHandshake.Text = "총 WS H/S: "
+        '
         'frmMain
         '
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.ClientSize = New System.Drawing.Size(824, 448)
+        Me.Controls.Add(Me.txtTotalHandshake)
+        Me.Controls.Add(Me.txtTotalAccept)
         Me.Controls.Add(Me.bthHalt)
         Me.Controls.Add(Me.txtSentBytes)
         Me.Controls.Add(Me.lstLog)
@@ -78,4 +102,6 @@ Partial Class frmMain
     Friend WithEvents lstLog As System.Windows.Forms.ListBox
     Friend WithEvents txtSentBytes As System.Windows.Forms.Label
     Friend WithEvents bthHalt As System.Windows.Forms.Button
+    Friend WithEvents txtTotalAccept As System.Windows.Forms.Label
+    Friend WithEvents txtTotalHandshake As System.Windows.Forms.Label
 End Class
