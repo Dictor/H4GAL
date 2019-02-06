@@ -42,7 +42,7 @@ var ctr_gallery = {
                 }
             };
             for(var key in ctr_gallery.imgbindlist){
-                ws.makeREQ("GETIMG", {"sid": sid, "dir": key});
+                ws.makeREQ("GETIMG", {"sid": sid, "dir":  encodeURI(key)});
                 delfunc(50);
             }
             for(var key in ctr_gallery.autothbindlist){
@@ -142,6 +142,7 @@ var ctr_gallery = {
         $(".loadPopup").show();
         var htmlstring = '<div class="row imgdiv">';
         ctr_gallery.autothbindlist = {};
+        ctr_gallery.imgbindlist = {};
         for(var i = ctr_gallery.photoperpage * (pagenum - 1); i < (ctr_gallery.photoperpage * (pagenum - 1)) + ctr_gallery.photoperpage; i++){
             if (!ctr_gallery.nowimglst[i]) break;
             var nowele = ctr_gallery.nowimglst[i];
