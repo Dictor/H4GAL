@@ -151,7 +151,7 @@ Public Class frmMain
                 Try
                     reqdata = JObject.Parse(pmsg(1))
                 Catch
-                    Print("ERROR", "", "API Request Data Json Parse Error!")
+                    'Print("ERROR", "", "API Request Data Json Parse Error!")
                 End Try
                 If reqName = "SESSION" Then
                     Dim nowsid = reqdata("sid")
@@ -175,6 +175,7 @@ Public Class frmMain
                     nowsess.SessionStatus = Session.SessionFlag.NoCredential
                     nowsess.CredentialStartTime = Now
                     SessionList.Add(sid.ToString, nowsess)
+                    Print("ISSUESESSION", sid.ToString.Substring(0, 6), socnum & " → " & sid.ToString)
                 ElseIf reqName = "TRYDISPAUTH" Then
                     Dim nowsid = reqdata("sid")
                     If SessionList.ContainsKey(nowsid) Then
@@ -320,7 +321,7 @@ Public Class frmMain
     Private Sub SendThImg(nowsid As String, socnum As Integer, thid As String)
         Try
             Dim fileopener As Object = Project.HEfile.CopyMe()
-            Print("GETTHUMB", nowsid.Substring(0, 6), " THID : " & thid)
+            Print("GETTHUMB", nowsid.Substring(0, 6), "THID : " & thid)
             fileopener.Directory.SetDirectory(Application.StartupPath & "\thumb\")
             Dim resfile As String = ""
             For Each nowf As String In fileopener.Directory.GetFile()
