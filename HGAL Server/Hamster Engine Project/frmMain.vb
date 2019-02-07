@@ -57,10 +57,12 @@ Public Class frmMain
         NativeMethods.SetErrorMode((ErrorModes.SEM_NOGPFAULTERRORBOX) Or (ErrorModes.SEM_FAILCRITICALERRORS Or ErrorModes.SEM_NOOPENFILEERRORBOX))
         AddHandler Application.ThreadException, New Threading.ThreadExceptionEventHandler(Sub(sender As Object, info As Threading.ThreadExceptionEventArgs)
                                                                                               EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("Application.ThreadException", "핸들되지 않은 예외 발생, 엔진 종료")
+                                                                                              EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("Application.ThreadException", info.Exception.ToString)
                                                                                               EngineWrapper.EngineFunction.EFUNC_EngineShutdown.DynamicInvoke()
                                                                                           End Sub)
         AddHandler AppDomain.CurrentDomain.UnhandledException, New UnhandledExceptionEventHandler(Sub(sender As Object, info As UnhandledExceptionEventArgs)
                                                                                                       EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("AppDomain.CurrentDomain.UnhandledException", "핸들되지 않은 예외 발생, 엔진 종료")
+                                                                                                      EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("AppDomain.CurrentDomain.UnhandledException", info.ExceptionObject.ToString)
                                                                                                       EngineWrapper.EngineFunction.EFUNC_EngineShutdown.DynamicInvoke()
                                                                                                   End Sub)
         Print("INIT", "", "윈도우 오류 다이얼로그 비활성 완료")
@@ -104,7 +106,7 @@ Public Class frmMain
             Dim clisoc As Socket = args(0)
             EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("SocCallback", "[ACCEPT]" & clisoc.RemoteEndPoint.ToString & " -> " & args(1))
             totalAccept += 1
-            txtTotalAccept.Text = totalAccept.ToString
+            txtTotalAccept.Text = "총 소켓 Accept : " & totalAccept.ToString
         ElseIf kind = "RECEIVE" Then
             ProcessMsg(args(2), args(1))
         ElseIf kind = "SEND" Then
@@ -139,7 +141,7 @@ Public Class frmMain
                 ServerSoc.Send(response, socnum)
                 EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("ProcessMsg", "[SOCKET]" & socnum & "번 소켓에서 웹소켓 핸드셰이크")
                 totalHandshake += 1
-                txtTotalHandshake.Text = totalHandshake.ToString
+                txtTotalHandshake.Text = "총 WS H/S : " & totalHandshake.ToString
             Else 'NON-GET REQ시
                 Dim msg As String = DecodeMessage(data)
                 'Print("[SOCKET]" & socnum & "번 소켓에서 데이터 수신 : '" & msg & "'")

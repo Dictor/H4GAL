@@ -38,7 +38,7 @@ Partial Class frmMain
         Me.txtSentBytes.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.txtSentBytes.AutoSize = True
         Me.txtSentBytes.Font = New System.Drawing.Font("맑은 고딕", 10.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(129, Byte))
-        Me.txtSentBytes.Location = New System.Drawing.Point(12, 387)
+        Me.txtSentBytes.Location = New System.Drawing.Point(12, 395)
         Me.txtSentBytes.Name = "txtSentBytes"
         Me.txtSentBytes.Size = New System.Drawing.Size(70, 19)
         Me.txtSentBytes.TabIndex = 1
@@ -49,7 +49,7 @@ Partial Class frmMain
         Me.bthHalt.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.bthHalt.Font = New System.Drawing.Font("맑은 고딕", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(129, Byte))
         Me.bthHalt.ForeColor = System.Drawing.Color.Red
-        Me.bthHalt.Location = New System.Drawing.Point(737, 382)
+        Me.bthHalt.Location = New System.Drawing.Point(741, 390)
         Me.bthHalt.Name = "bthHalt"
         Me.bthHalt.Size = New System.Drawing.Size(75, 23)
         Me.bthHalt.TabIndex = 2
@@ -61,7 +61,7 @@ Partial Class frmMain
         Me.txtTotalAccept.Anchor = System.Windows.Forms.AnchorStyles.Bottom
         Me.txtTotalAccept.AutoSize = True
         Me.txtTotalAccept.Font = New System.Drawing.Font("맑은 고딕", 10.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(129, Byte))
-        Me.txtTotalAccept.Location = New System.Drawing.Point(226, 387)
+        Me.txtTotalAccept.Location = New System.Drawing.Point(228, 395)
         Me.txtTotalAccept.Name = "txtTotalAccept"
         Me.txtTotalAccept.Size = New System.Drawing.Size(121, 19)
         Me.txtTotalAccept.TabIndex = 3
@@ -72,7 +72,7 @@ Partial Class frmMain
         Me.txtTotalHandshake.Anchor = System.Windows.Forms.AnchorStyles.Bottom
         Me.txtTotalHandshake.AutoSize = True
         Me.txtTotalHandshake.Font = New System.Drawing.Font("맑은 고딕", 10.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(129, Byte))
-        Me.txtTotalHandshake.Location = New System.Drawing.Point(457, 386)
+        Me.txtTotalHandshake.Location = New System.Drawing.Point(459, 394)
         Me.txtTotalHandshake.Name = "txtTotalHandshake"
         Me.txtTotalHandshake.Size = New System.Drawing.Size(89, 19)
         Me.txtTotalHandshake.TabIndex = 4
@@ -86,7 +86,7 @@ Partial Class frmMain
         Me.lstLog.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.colTime, Me.colKind, Me.colUser, Me.colContent})
         Me.lstLog.Location = New System.Drawing.Point(12, 12)
         Me.lstLog.Name = "lstLog"
-        Me.lstLog.Size = New System.Drawing.Size(800, 365)
+        Me.lstLog.Size = New System.Drawing.Size(804, 373)
         Me.lstLog.TabIndex = 5
         Me.lstLog.UseCompatibleStateImageBehavior = False
         Me.lstLog.View = System.Windows.Forms.View.Details
@@ -112,7 +112,7 @@ Partial Class frmMain
         'frmMain
         '
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
-        Me.ClientSize = New System.Drawing.Size(824, 414)
+        Me.ClientSize = New System.Drawing.Size(828, 422)
         Me.Controls.Add(Me.lstLog)
         Me.Controls.Add(Me.txtTotalHandshake)
         Me.Controls.Add(Me.txtTotalAccept)
