@@ -362,89 +362,6 @@ Public Class frmMain
         End Try
     End Sub
 
-    Private Class FileEntry
-        Public isDirectory As Boolean
-        Public Path As String
-
-        Public Sub New(d As Boolean, p As String)
-            isDirectory = d
-            Path = p
-        End Sub
-    End Class
-
-    Private imgext As New List(Of String) From {"gif", "bmp", "jpg", "png"}
-    Private Sub MakeThumbNail()
-        Try
-            Dim fileobj As Object = Project.HEfile.CopyMe()
-            Dim entrystack As New Stack
-            fileobj.Directory.SetDirectory(Application.StartupPath & "\image\")
-            ExploreDirectory(entrystack, Application.StartupPath & "\image\")
-
-            Do Until entrystack.Count = 0
-                Try
-                    Dim nowe As FileEntry = entrystack.Pop
-
-                    If nowe.isDirectory Then
-                        ExploreDirectory(entrystack, nowe.Path)
-                    Else
-                        Dim nowehash = ComputeFileHash(nowe.Path)
-                        Dim thpath = Path.ChangeExtension(Application.StartupPath & "\thumb\" & nowehash, GetFileType(nowe.Path))
-                        Dim filechkobj As Object = Project.HEfile.CopyMe()
-                        filechkobj.SetFile(thpath, Encoding.UTF8)
-                        If Not filechkobj.Exist() Then
-                            If isImageFilePath(nowe.Path) Then
-                                Print("THUMB", "", "'" & nowe.Path & "' -> (" & thpath & ")의 썸네일 생성 시작")
-                                Dim img As Image = Image.FromFile(nowe.Path)
-                                Dim th As Image = img.GetThumbnailImage(480, 320, Function() False, IntPtr.Zero)
-                                th.Save(thpath)
-                                th.Dispose()
-                                img.Dispose()
-                                Print("THUMB", "", "썸네일 생성 완료")
-                            End If
-                        End If
-                    End If
-                Catch ex As Exception
-                    Print("ERROR", "", "썸네일 개별 사진 처리중 오류 발생 " & ex.ToString)
-                Finally
-                    Application.DoEvents()
-                End Try
-            Loop
-        Catch ex As Exception
-            Print("ERROR", "", " 썸네일 초기화 중 오류 발생 " & ex.ToString)
-        End Try
-    End Sub
-
-    Private Function GetFileType(Path As String) As String
-        Return Path.Split(".").Last
-    End Function
-
-    Private Function isImageFilePath(Path As String) As Boolean
-        Return imgext.Contains(GetFileType(Path).ToLower)
-    End Function
-
-    Private Function ComputeFileHash(path As String) As String
-        Using hashobj As MD5 = MD5.Create
-            Using stream As FileStream = File.OpenRead(path)
-                Return BitConverter.ToString(hashobj.ComputeHash(stream)).Replace("-", "").ToLowerInvariant()
-            End Using
-        End Using
-    End Function
-
-    Private Sub ExploreDirectory(ByRef stack As Stack, path As String)
-        Dim fileobj As Object = Project.HEfile.CopyMe()
-        fileobj.Directory.SetDirectory(path)
-        Dim entry As String() = fileobj.Directory.GetFile()
-        For Each e In entry
-            Dim nowe = New FileEntry(False, e)
-            stack.Push(nowe)
-        Next
-        entry = fileobj.Directory.GetDirectory()
-        For Each e In entry
-            Dim nowe = New FileEntry(True, e)
-            stack.Push(nowe)
-        Next
-    End Sub
-
     Public Sub Print(kind As String, user As String, data As String)
         Try
             Dim nowrow As New ListViewItem({Now.ToString("MM/dd hh:mm:ss"), kind, user, data})
@@ -455,134 +372,17 @@ Public Class frmMain
         End Try
     End Sub
 
-    Public Function EncodeMessage(data As String) As Byte()
-        Dim lb = New List(Of Byte)()
-        lb.Add(&H81)
-        Dim bytedata As Byte() = Encoding.UTF8.GetBytes(data)
-        Dim size = bytedata.Length
+    Private Sub bthHalt_Click(sender As Object, e As EventArgs) Handles bthHalt.Click
+        Try
+            ServerSoc.Shutdown()
+        Finally
+            EngineWrapper.EngineFunction.EFUNC_EngineShutdown.DynamicInvoke()
+        End Try
+    End Sub
 
-        If size > 127 Then
-            'Throw New Exception("단일프레임내 127바이트 이상의 데이터가 포함될수 없습니다. (Data must be less than 128 bytes)")
-        End If
-
-        lb.Add(CByte(size))
-        lb.AddRange(bytedata)
-        Return lb.ToArray
-    End Function
-
-    Private Enum messageType
-        Continuos
-        Text
-        Binary
-        Close
-        Ping
-        Pong
-    End Enum
-
-    Private Function CreateFrame(message As String, Optional messageType As messageType = messageType.Text, Optional messageContinues As Boolean = False) As Byte()
-        Dim b1 As Byte = 0
-        Dim b2 As Byte = 0
-        Select Case messageType
-            Case messageType.Continuos
-                b1 = 0
-            Case messageType.Text
-                b1 = 1
-            Case messageType.Binary
-                b1 = 2
-            Case messageType.Close
-                b1 = 8
-            Case messageType.Ping
-                b1 = 9
-            Case messageType.Pong
-                b1 = 10
-        End Select
-
-        b1 = CByte((b1 + 128))
-        Dim messageBytes As Byte() = Encoding.UTF8.GetBytes(message)
-        If messageBytes.Length < 126 Then
-            b2 = CByte(messageBytes.Length)
-        Else
-            If messageBytes.Length < Math.Pow(2, 16) - 1 Then
-                b2 = 126
-            Else
-                b2 = 127
-            End If
-        End If
-
-        Dim frame As Byte() = Nothing
-        If b2 < 126 Then
-            frame = New Byte(messageBytes.Length + 2 - 1) {}
-            frame(0) = b1
-            frame(1) = b2
-            Array.Copy(messageBytes, 0, frame, 2, messageBytes.Length)
-        End If
-
-        If b2 = 126 Then
-            frame = New Byte(messageBytes.Length + 4 - 1) {}
-            frame(0) = b1
-            frame(1) = b2
-            Dim lenght As Byte() = BitConverter.GetBytes(messageBytes.Length)
-            frame(2) = lenght(1)
-            frame(3) = lenght(0)
-            Array.Copy(messageBytes, 0, frame, 4, messageBytes.Length)
-        End If
-
-        If b2 = 127 Then
-            frame = New Byte(messageBytes.Length + 10 - 1) {}
-            frame(0) = b1
-            frame(1) = b2
-            Dim lenght As Byte() = BitConverter.GetBytes(CLng(messageBytes.Length))
-
-            Dim i = 7, j = 2
-            While i >= 0
-                If Not i >= 0 Then
-                    Exit While
-                End If
-                frame(j) = lenght(i)
-                i -= 1
-                j += 1
-            End While
-        End If
-
-        Return frame
-    End Function
-
-    Public Function DecodeMessage(buffer As Byte()) As String
-        Dim b As Byte = buffer(1)
-        Dim dataLength As Integer = 0
-        Dim totalLength As Integer = 0
-        Dim keyIndex As Integer = 0
-
-        If b - 128 <= 125 Then
-            dataLength = b - 128
-            keyIndex = 2
-            totalLength = dataLength + 6
-        End If
-
-        If b - 128 = 126 Then
-            dataLength = BitConverter.ToInt16(New Byte() {buffer(3), buffer(2)}, 0)
-            keyIndex = 4
-            totalLength = dataLength + 8
-        End If
-
-        If b - 128 = 127 Then
-            dataLength = CInt(BitConverter.ToInt64(New Byte() {buffer(9), buffer(8), buffer(7), buffer(6), buffer(5), buffer(4),
-                buffer(3), buffer(2)}, 0))
-            keyIndex = 10
-            totalLength = dataLength + 14
-        End If
-
-        Dim key As Byte() = New Byte() {buffer(keyIndex), buffer(keyIndex + 1), buffer(keyIndex + 2), buffer(keyIndex + 3)}
-
-        Dim dataIndex As Integer = keyIndex + 4
-        Dim count As Integer = 0
-        For i As Integer = dataIndex To totalLength - 1
-            buffer(i) = CByte(buffer(i) Xor key(count Mod 4))
-            count += 1
-        Next
-
-        Return Encoding.ASCII.GetString(buffer, dataIndex, dataLength)
-    End Function
+    Private Sub lstLog_SizeChanged(sender As Object, e As EventArgs) Handles lstLog.SizeChanged
+        lstLog.Columns.Item(3).Width = lstLog.Width - (lstLog.Columns.Item(0).Width + lstLog.Columns.Item(1).Width + lstLog.Columns.Item(2).Width)
+    End Sub
 
     Public Function SHA256Hash(ByVal data As String) As String
         Dim sha As SHA256 = New SHA256Managed()
@@ -605,16 +405,4 @@ Public Class frmMain
         s = regex.Replace(s, "")
         Return s
     End Function
-
-    Private Sub bthHalt_Click(sender As Object, e As EventArgs) Handles bthHalt.Click
-        Try
-            ServerSoc.Shutdown()
-        Finally
-            EngineWrapper.EngineFunction.EFUNC_EngineShutdown.DynamicInvoke()
-        End Try
-    End Sub
-
-    Private Sub lstLog_SizeChanged(sender As Object, e As EventArgs) Handles lstLog.SizeChanged
-        lstLog.Columns.Item(3).Width = lstLog.Width - (lstLog.Columns.Item(0).Width + lstLog.Columns.Item(1).Width + lstLog.Columns.Item(2).Width)
-    End Sub
 End Class
