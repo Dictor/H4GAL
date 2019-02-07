@@ -16,13 +16,14 @@ Public Class frmMain
 
     Private ServerSoc As Object
     Delegate Sub SocCb(kind As String, args As Object())
-    Private clichecktim As New System.Timers.Timer(100)
+    Private clichecktim As New System.Timers.Timer(1000)
     Private DispAuthCodelist As String()
     Private SessionList As New Dictionary(Of String, Session)
-
     Private totalSentByte As Long = 0
     Private totalHandshake As Long = 0
     Private totalAccept As Long = 0
+
+    Private Const sessionExpireMinute As Integer = 30
 
     Private Class Session
         Public SocketNumber As Integer
@@ -51,37 +52,51 @@ Public Class frmMain
     End Class
 
     Public Sub initproc()
-        Print("[INIT]UI 로드 완료")
+        Print("INIT", "", "UI 로드 완료")
+        lstLog_SizeChanged(Nothing, Nothing)
         NativeMethods.SetErrorMode((ErrorModes.SEM_NOGPFAULTERRORBOX) Or (ErrorModes.SEM_FAILCRITICALERRORS Or ErrorModes.SEM_NOOPENFILEERRORBOX))
         AddHandler Application.ThreadException, New Threading.ThreadExceptionEventHandler(Sub(sender As Object, info As Threading.ThreadExceptionEventArgs)
+                                                                                              EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("Application.ThreadException", "핸들되지 않은 예외 발생, 엔진 종료")
                                                                                               EngineWrapper.EngineFunction.EFUNC_EngineShutdown.DynamicInvoke()
                                                                                           End Sub)
         AddHandler AppDomain.CurrentDomain.UnhandledException, New UnhandledExceptionEventHandler(Sub(sender As Object, info As UnhandledExceptionEventArgs)
+                                                                                                      EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("AppDomain.CurrentDomain.UnhandledException", "핸들되지 않은 예외 발생, 엔진 종료")
                                                                                                       EngineWrapper.EngineFunction.EFUNC_EngineShutdown.DynamicInvoke()
                                                                                                   End Sub)
-        Print("[INIT]윈도우 오류 다이얼로그 비활성 완료")
-
-        Print("[INIT]" & Project.Version.GetName & "  " & Project.Version.GetVersion(True))
+        Print("INIT", "", "윈도우 오류 다이얼로그 비활성 완료")
+        Print("INIT", "", Project.Version.GetName & "  " & Project.Version.GetVersion(True))
         Try
             ServerSoc = Project.HEsock.CopyMe()
-            Print("[INIT]0.0.0.0:81에서 Listen모드로 소켓을 초기화합니다.")
+            Print("INIT", "", "0.0.0.0:81에서 Listen모드로 소켓을 초기화합니다.")
             ServerSoc.init(True, "0.0.0.0", 81, New SocCb(AddressOf SocCallback))
             'AddHandler clichecktim.Elapsed, AddressOf chkcli
-            Print("[INIT]Listen을 시작합니다")
+            Print("INIT", "", "Listen을 시작합니다")
             ServerSoc.SetListen()
             'clichecktim.Start()
-            Print("[INIT]소켓 시작 작업 완료")
+            Print("INIT", "", "소켓 시작 작업 완료")
             Dim fileopener = Project.HEfile.CopyMe()
             fileopener.SetFile(Application.StartupPath & "\data\allowDispAuthCode.txt", Encoding.UTF8)
             DispAuthCodelist = Split(fileopener.ReadText(), vbCrLf)
-            Print("[INIT]엑세스 코드 리스트 읽기 완료")
-            Print("[INIT]썸네일 검사 시작")
+            Print("INIT", "", "엑세스 코드 리스트 읽기 완료")
+            Print("INIT", "", "썸네일 검사 시작")
             MakeThumbNail()
-            Print("[INIT]썸네일 검사 완료")
+            Print("INIT", "", "썸네일 검사 완료")
+            AddHandler clichecktim.Elapsed, AddressOf CheckSession
+            clichecktim.Start()
+            Print("INIT", "", "세션 검사 타이머 시작")
         Catch ex As Exception
-            Print("[ERROR]소켓을 초기화하는중 오류가 발생했습니다!!")
-            Print(ex.ToString)
+            Print("ERROR", "", "소켓을 초기화하는중 오류가 발생했습니다!!")
+            Print("ERROR", "", ex.ToString)
         End Try
+    End Sub
+
+    Private Sub CheckSession()
+        For Each nowSess In SessionList
+            If (Now - nowSess.Value.CredentialStartTime).TotalMinutes > sessionExpireMinute Then
+                Print("CheckSession", "", "SID : '" & nowSess.Key & "'세션 만료")
+                SessionList.Remove(nowSess.Key)
+            End If
+        Next
     End Sub
 
     Public Sub SocCallback(kind As String, args As Object())
@@ -95,13 +110,13 @@ Public Class frmMain
         ElseIf kind = "SEND" Then
             EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("SocCallback", "[SEND] " & args(1) & "bytes")
             totalSentByte += Convert.ToUInt32(args(1))
-            txtSentBytes.Text = "총 전송 : " & totalSentByte.ToString & "byte"
+            txtSentBytes.Text = "총 전송 :   " & totalSentByte.ToString & "byte"
         ElseIf kind = "DISCONNECT" Then
             EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("SocCallback", "[DISCONN] " & args(0))
         ElseIf kind = "ERROR" Then
             If (CType(args(1), Exception).GetType.FullName = "System.Net.Sockets.SocketException") Or args(0) = "CFUNC_SEND" Then
                 If Thread.CurrentThread.Name.Contains("SEND") Then
-                    Print("[ERROR]SENDIMG or SENDTHIMG Abort")
+                    Print("ERROR", "", "SENDIMG or SENDTHIMG Abort")
                     Thread.CurrentThread.Abort()
                 End If
                 EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("SocCallback", "[ERROR] (" & args(2).ToString() & ")" & args(0) & " : " & args(1).ToString)
@@ -111,10 +126,8 @@ Public Class frmMain
                 Catch ex As Exception
                     EngineWrapper.EngineFunction.EFUNC_LogWrite.DynamicInvoke("[ERROR]Client Socket Close Fail")
                 End Try
-                Print("[ERROR] (" & args(2).ToString() & ")" & args(0) & " : " & args(1).ToString)
+                Print("ERROR", "", "(" & args(2).ToString() & ")" & args(0) & " : " & args(1).ToString)
             End If
-        Else
-            Print("[" + kind + "]")
         End If
     End Sub
 
@@ -132,11 +145,11 @@ Public Class frmMain
                 'Print("[SOCKET]" & socnum & "번 소켓에서 데이터 수신 : '" & msg & "'")
                 Dim pmsg As String() = Split(msg, "#")
                 Dim reqName As String = pmsg(0)
-                Dim reqdata As JObject
+                Dim reqdata As JObject = Nothing
                 Try
                     reqdata = JObject.Parse(pmsg(1))
                 Catch
-                    Print("[ERROR] API Request Data Json Parse Error!")
+                    Print("ERROR", "", "API Request Data Json Parse Error!")
                 End Try
                 If reqName = "SESSION" Then
                     Dim nowsid = reqdata("sid")
@@ -152,7 +165,7 @@ Public Class frmMain
                         SendREQ("GETCREDENTIAL", New JObject From {{"isNew", True}, {"error", ""}}, socnum)
                     End If
                 ElseIf reqName = "MAKESESSION" Then
-                    Dim sid As Guid = Guid.NewGuid
+                    Dim sid As Guid = Guid.NewGuid()
                     Dim nowjson As New JObject From {{"sid", sid.ToString}}
                     SendREQ("ISSUESESSION", nowjson, socnum)
                     Dim nowsess = New Session
@@ -185,7 +198,7 @@ Public Class frmMain
                                     SessionList(nowsid).CredentialUserName = Uri.UnescapeDataString(reqdata("name").ToString)
                                     SessionList(nowsid).SessionStatus = Session.SessionFlag.DisposableCredential
                                     SessionList(nowsid).otherData.Add("STUID", reqdata("stuid"))
-                                    Print("[DISPAUTH] '" & SessionList(nowsid).CredentialUserName & "'(" & SessionList(nowsid).otherData("STUID") & ") -> 코드 '" & reqdata("code").ToString & "' sid : " & nowsid.ToString)
+                                    Print("DISPAUTH", nowsid.ToString.Substring(0, 6), "'" & SessionList(nowsid).CredentialUserName & "'(" & SessionList(nowsid).otherData("STUID") & ") -> 코드 '" & reqdata("code").ToString & "'")
                                 Else
                                     SendREQ("TRYDISPAUTH", New JObject From {{"status", False}, {"error", "INCORRECT_CODE"}}, socnum)
                                 End If
@@ -206,7 +219,7 @@ Public Class frmMain
                         nowpath = Replace(nowpath, "/", "\")
                         nowpath = EscapeDirectoryPath(nowpath)
                         Dim fileopener As Object = Project.HEfile.CopyMe()
-                        Print("[GETIMGLIST]" & SessionList(nowsid).CredentialUserName & "->" & Application.StartupPath & "\image" & nowpath + "imglist.lst")
+                        Print("GETIMGLIST", nowsid.ToString.Substring(0, 6), Application.StartupPath & "\image" & nowpath + "imglist.lst")
                         fileopener.SetFile(Application.StartupPath & "\image" & nowpath + "imglist.lst", Encoding.UTF8)
                         If fileopener.Exist() Then
                             Dim nowlist = Split(fileopener.ReadText(), vbCrLf)
@@ -266,7 +279,7 @@ Public Class frmMain
                 End If
             End If
         Catch ex As Exception
-            Print(ex.ToString)
+            Print("ERROR", "", ex.ToString)
             Try
                 SendREQ("SHOWALERT", "INTERNAL SERVER ERROR!", socnum)
             Catch
@@ -280,7 +293,7 @@ Public Class frmMain
 
     Private Sub SendImg(nowsid As String, socnum As Integer, imgdir As String)
         Dim fileopener As Object = Project.HEfile.CopyMe()
-        Print("[GETIMG](" & Thread.CurrentThread.GetHashCode & ")" & SessionList(nowsid).CredentialUserName & "->" & Application.StartupPath & "\image" & imgdir)
+        Print("GETIMG", nowsid.Substring(0, 6), "(" & Thread.CurrentThread.GetHashCode & ")" & Application.StartupPath & "\image" & imgdir)
         fileopener.SetFile(Application.StartupPath & "\image" & imgdir, Encoding.UTF8)
         If fileopener.Exist() Then
             Dim imgbase64str As String = Convert.ToBase64String(fileopener.ReadByte())
@@ -305,7 +318,7 @@ Public Class frmMain
     Private Sub SendThImg(nowsid As String, socnum As Integer, thid As String)
         Try
             Dim fileopener As Object = Project.HEfile.CopyMe()
-            'Print("[GETTHUMB](" & Thread.CurrentThread.GetHashCode & ")" & SessionList(nowsid).CredentialUserName & "-> THID : " & thid)
+            Print("GETTHUMB", nowsid.Substring(0, 6), " THID : " & thid)
             fileopener.Directory.SetDirectory(Application.StartupPath & "\thumb\")
             Dim resfile As String = ""
             For Each nowf As String In fileopener.Directory.GetFile()
@@ -338,7 +351,7 @@ Public Class frmMain
                 SendREQ("GETTHUMB", New JObject From {{"status", False}, {"error", "INVALID_PATH"}}, socnum)
             End If
         Catch ex As Exception
-            Print(ex.ToString)
+            Print("ERROR", "", ex.ToString)
             Try
                 SendREQ("SHOWALERT", "INTERNAL SERVER ERROR!", socnum)
             Catch
@@ -377,24 +390,24 @@ Public Class frmMain
                         filechkobj.SetFile(thpath, Encoding.UTF8)
                         If Not filechkobj.Exist() Then
                             If isImageFilePath(nowe.Path) Then
-                                Print("[THUMB] '" & nowe.Path & "' -> (" & thpath & ")의 썸네일 생성 시작")
+                                Print("THUMB", "", "'" & nowe.Path & "' -> (" & thpath & ")의 썸네일 생성 시작")
                                 Dim img As Image = Image.FromFile(nowe.Path)
                                 Dim th As Image = img.GetThumbnailImage(480, 320, Function() False, IntPtr.Zero)
                                 th.Save(thpath)
                                 th.Dispose()
                                 img.Dispose()
-                                Print("[THUMB] 썸네일 생성 완료")
+                                Print("THUMB", "", "썸네일 생성 완료")
                             End If
                         End If
                     End If
                 Catch ex As Exception
-                    Print("[THUMB] 개별 사진 처리중 오류 발생 " & ex.ToString)
+                    Print("ERROR", "", "썸네일 개별 사진 처리중 오류 발생 " & ex.ToString)
                 Finally
                     Application.DoEvents()
                 End Try
             Loop
         Catch ex As Exception
-            Print("[THUMB] 초기화 중 오류 발생 " & ex.ToString)
+            Print("ERROR", "", " 썸네일 초기화 중 오류 발생 " & ex.ToString)
         End Try
     End Sub
 
@@ -429,17 +442,14 @@ Public Class frmMain
         Next
     End Sub
 
-    Public Sub Print(data As String)
+    Public Sub Print(kind As String, user As String, data As String)
         Try
-            lstLog.Items.Add(data)
-            lstLog.SelectedIndex = lstLog.Items.Count - 1
-            EngineWrapper.EngineFunction.EFUNC_LogWrite.DynamicInvoke(data)
+            Dim nowrow As New ListViewItem({Now.ToString("MM/dd hh:mm:ss"), kind, user, data})
+            lstLog.Items.Add(nowrow)
+            lstLog.EnsureVisible(lstLog.Items.Count - 1)
+            EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke(kind, "(" & user & ")" & data)
         Catch
         End Try
-    End Sub
-
-    Private Sub lstLog_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstLog.SelectedIndexChanged
-
     End Sub
 
     Public Function EncodeMessage(data As String) As Byte()
@@ -599,5 +609,9 @@ Public Class frmMain
         Finally
             EngineWrapper.EngineFunction.EFUNC_EngineShutdown.DynamicInvoke()
         End Try
+    End Sub
+
+    Private Sub lstLog_SizeChanged(sender As Object, e As EventArgs) Handles lstLog.SizeChanged
+        lstLog.Columns.Item(3).Width = lstLog.Width - (lstLog.Columns.Item(0).Width + lstLog.Columns.Item(1).Width + lstLog.Columns.Item(2).Width)
     End Sub
 End Class
