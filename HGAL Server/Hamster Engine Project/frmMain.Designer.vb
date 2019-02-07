@@ -31,6 +31,7 @@ Partial Class frmMain
         Me.colKind = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
         Me.colUser = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
         Me.colContent = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
+        Me.txtAvailSess = New System.Windows.Forms.Label()
         Me.SuspendLayout()
         '
         'txtSentBytes
@@ -61,7 +62,7 @@ Partial Class frmMain
         Me.txtTotalAccept.Anchor = System.Windows.Forms.AnchorStyles.Bottom
         Me.txtTotalAccept.AutoSize = True
         Me.txtTotalAccept.Font = New System.Drawing.Font("맑은 고딕", 10.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(129, Byte))
-        Me.txtTotalAccept.Location = New System.Drawing.Point(228, 395)
+        Me.txtTotalAccept.Location = New System.Drawing.Point(178, 395)
         Me.txtTotalAccept.Name = "txtTotalAccept"
         Me.txtTotalAccept.Size = New System.Drawing.Size(121, 19)
         Me.txtTotalAccept.TabIndex = 3
@@ -72,7 +73,7 @@ Partial Class frmMain
         Me.txtTotalHandshake.Anchor = System.Windows.Forms.AnchorStyles.Bottom
         Me.txtTotalHandshake.AutoSize = True
         Me.txtTotalHandshake.Font = New System.Drawing.Font("맑은 고딕", 10.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(129, Byte))
-        Me.txtTotalHandshake.Location = New System.Drawing.Point(459, 394)
+        Me.txtTotalHandshake.Location = New System.Drawing.Point(381, 395)
         Me.txtTotalHandshake.Name = "txtTotalHandshake"
         Me.txtTotalHandshake.Size = New System.Drawing.Size(89, 19)
         Me.txtTotalHandshake.TabIndex = 4
@@ -99,6 +100,7 @@ Partial Class frmMain
         'colKind
         '
         Me.colKind.Text = "종류"
+        Me.colKind.Width = 100
         '
         'colUser
         '
@@ -109,10 +111,22 @@ Partial Class frmMain
         '
         Me.colContent.Text = "내용"
         '
+        'txtAvailSess
+        '
+        Me.txtAvailSess.Anchor = System.Windows.Forms.AnchorStyles.Bottom
+        Me.txtAvailSess.AutoSize = True
+        Me.txtAvailSess.Font = New System.Drawing.Font("맑은 고딕", 10.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(129, Byte))
+        Me.txtAvailSess.Location = New System.Drawing.Point(547, 395)
+        Me.txtAvailSess.Name = "txtAvailSess"
+        Me.txtAvailSess.Size = New System.Drawing.Size(98, 19)
+        Me.txtAvailSess.TabIndex = 6
+        Me.txtAvailSess.Text = "총 활성 세션: "
+        '
         'frmMain
         '
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.ClientSize = New System.Drawing.Size(828, 422)
+        Me.Controls.Add(Me.txtAvailSess)
         Me.Controls.Add(Me.lstLog)
         Me.Controls.Add(Me.txtTotalHandshake)
         Me.Controls.Add(Me.txtTotalAccept)
@@ -134,4 +148,5 @@ Partial Class frmMain
     Friend WithEvents colKind As System.Windows.Forms.ColumnHeader
     Friend WithEvents colUser As System.Windows.Forms.ColumnHeader
     Friend WithEvents colContent As System.Windows.Forms.ColumnHeader
+    Friend WithEvents txtAvailSess As System.Windows.Forms.Label
 End Class

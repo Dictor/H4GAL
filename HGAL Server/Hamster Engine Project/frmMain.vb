@@ -80,12 +80,13 @@ Public Class frmMain
             fileopener.SetFile(Application.StartupPath & "\data\allowDispAuthCode.txt", Encoding.UTF8)
             DispAuthCodelist = Split(fileopener.ReadText(), vbCrLf)
             Print("INIT", "", "엑세스 코드 리스트 읽기 완료")
+            AddHandler clichecktim.Elapsed, AddressOf CheckSession
+            clichecktim.AutoReset = False
+            clichecktim.Start()
+            Print("INIT", "", "세션 검사 타이머 시작 완료")
             Print("INIT", "", "썸네일 검사 시작")
             MakeThumbNail()
             Print("INIT", "", "썸네일 검사 완료")
-            AddHandler clichecktim.Elapsed, AddressOf CheckSession
-            clichecktim.Start()
-            Print("INIT", "", "세션 검사 타이머 시작")
         Catch ex As Exception
             Print("ERROR", "", "소켓을 초기화하는중 오류가 발생했습니다!!")
             Print("ERROR", "", ex.ToString)
@@ -95,10 +96,11 @@ Public Class frmMain
     Private Sub CheckSession()
         For Each nowSess In SessionList
             If (Now - nowSess.Value.CredentialStartTime).TotalMinutes > sessionExpireMinute Then
-                Print("CheckSession", "", "SID : '" & nowSess.Key & "'세션 만료")
+                Print("CHECKSESSION", "", "SID : '" & nowSess.Key & "'세션 만료")
                 SessionList.Remove(nowSess.Key)
             End If
         Next
+        txtAvailSess.Text = "활성 세션: " & SessionList.Count.ToString
     End Sub
 
     Public Sub SocCallback(kind As String, args As Object())
@@ -106,13 +108,13 @@ Public Class frmMain
             Dim clisoc As Socket = args(0)
             EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("SocCallback", "[ACCEPT]" & clisoc.RemoteEndPoint.ToString & " -> " & args(1))
             totalAccept += 1
-            txtTotalAccept.Text = "총 소켓 Accept : " & totalAccept.ToString
+            txtTotalAccept.Text = "총 소켓 Accept: " & totalAccept.ToString
         ElseIf kind = "RECEIVE" Then
             ProcessMsg(args(2), args(1))
         ElseIf kind = "SEND" Then
             EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("SocCallback", "[SEND] " & args(1) & "bytes")
             totalSentByte += Convert.ToUInt32(args(1))
-            txtSentBytes.Text = "총 전송 :   " & totalSentByte.ToString & "byte"
+            txtSentBytes.Text = "총 전송 : " & Math.Round(totalSentByte / 1000.0F, 1).ToString & "kB"
         ElseIf kind = "DISCONNECT" Then
             EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("SocCallback", "[DISCONN] " & args(0))
         ElseIf kind = "ERROR" Then
@@ -141,7 +143,7 @@ Public Class frmMain
                 ServerSoc.Send(response, socnum)
                 EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("ProcessMsg", "[SOCKET]" & socnum & "번 소켓에서 웹소켓 핸드셰이크")
                 totalHandshake += 1
-                txtTotalHandshake.Text = "총 WS H/S : " & totalHandshake.ToString
+                txtTotalHandshake.Text = "총 WS H/S: " & totalHandshake.ToString
             Else 'NON-GET REQ시
                 Dim msg As String = DecodeMessage(data)
                 'Print("[SOCKET]" & socnum & "번 소켓에서 데이터 수신 : '" & msg & "'")
@@ -364,7 +366,7 @@ Public Class frmMain
 
     Public Sub Print(kind As String, user As String, data As String)
         Try
-            Dim nowrow As New ListViewItem({Now.ToString("MM/dd hh:mm:ss"), kind, user, data})
+            Dim nowrow As New ListViewItem({Now.ToString("MM/dd HH:mm:ss"), kind, user, data})
             lstLog.Items.Add(nowrow)
             lstLog.EnsureVisible(lstLog.Items.Count - 1)
             EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke(kind, "(" & user & ")" & data)
