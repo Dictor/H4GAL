@@ -3,6 +3,10 @@
 .pagination>li>a{padding: 6px 7px;}
 .pagination{margin-bottom: 0;}
 
+#kakao_login_img {width: 20px;}
+#kakao_login_wrapbtn{padding: 6px 4px 2px 4px;}
+#dispauth_login_wrapbtn{padding-bottom: 3px;}
+
 .gtitletxt {display: none;}
 #txtAuthInfo {font-size: 0.7em; padding-left: 20px;}
 #fullscrbtn_detailexp {display: none;}

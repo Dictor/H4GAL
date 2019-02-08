@@ -11,6 +11,9 @@
         <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
         <script src="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
 
+        <!--Kakao Auth-->
+        <script src="//developers.kakao.com/sdk/js/kakao.min.js"></script>
+
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device=width, initial-scale=1">
         <link rel="stylesheet" href="style/common_style.css">
@@ -66,12 +69,13 @@
                                             <table id="login_btn" style="width:100%">
                                                 <tr style="vertical-align:top">
                                                     <td style="width:50%; border-right:1px solid gray;">
-                                                            <button type="button" class="btn btn-primary btn-lg" style="width:90%; height:90%;" onclick="ctr_index.showlogininput();">
-                                                                <p class="text btntxt">로그인</p>
+                                                            <button type="button" id="kakao_login_wrapbtn" class="btn btn-primary btn-lg" onclick="ctr_index.loginWithKakao();">
+                                                                <img id="kakao_login_img" src="img/kakaolink_btn_medium.png">
+                                                                <p id="kakao_login_txt" class="text btntxt">카카오 로그인</p>
                                                             </button>
                                                     </td>
                                                     <td style="width:50%;">
-                                                        <button type="button" class="btn btn-warning btn-lg" style="width:90%; height:90%;" onclick="ctr_index.showdispinput();">
+                                                        <button type="button" id="dispauth_login_wrapbtn" class="btn btn-warning btn-lg" style="width:90%; height:90%;" onclick="ctr_index.showdispinput();">
                                                             <p class="text btntxt">일회용 자격증명</p>
                                                         </button>
                                                     </td>
@@ -128,7 +132,7 @@
                             </div>
                             <div class="col-md-2"></div>
                         </div>
-                        <br><p class="text" style="font-size:1em; color:gray;"> &copy; 김정현(kimdictor@gmail.com) 2018</p>
+                        <br><p class="text" style="font-size:1em; color:gray;"> &copy; 김정현(kimdictor@gmail.com) 2019</p>
                     </div>
                 </div>
             </div>

@@ -4,6 +4,7 @@ var ctr_index = {
             $("#statusdiv_loginmenu").hide();
             $("#statusdiv_error").hide();			
             $("#statusdiv_conn").show();
+            Kakao.init('47994d851f67e522d8665d374c804817');
             ws.init();
         }
     },
@@ -14,6 +15,18 @@ var ctr_index = {
     showdispinput : function () {
         $("#login_btn").hide();
         $("#disp_input").show();
+    },
+    loginWithKakao : function () {
+        Kakao.Auth.login({
+          success: function(authObj) {
+            Kakao.Auth.getStatus(function(statusObj) {
+                alert("현재 카카오 로그인은 준비 중입니다! (UID : " + statusObj["user"]["id"] + "→" + statusObj["user"]["properties"]["nickname"] + ")");
+            });
+          },
+          fail: function(err) {
+            alert("로그인 시도 중 오류가 발생했습니다! : " + JSON.stringify(err));
+          }
+        });
     },
     reqdispauth : function () {
         var code = $("#txtAuthCode").val();
