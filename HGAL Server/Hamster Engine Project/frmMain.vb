@@ -22,6 +22,7 @@ Public Class frmMain
     Private totalSentByte As Long = 0
     Private totalHandshake As Long = 0
     Private totalAccept As Long = 0
+    Private socnumToIp As New Dictionary(Of String, String)
 
     Private Const sessionExpireMinute As Integer = 30
 
@@ -107,18 +108,23 @@ Public Class frmMain
         If kind = "ACCEPT" Then
             Dim clisoc As Socket = args(0)
             EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("SocCallback", "[ACCEPT]" & clisoc.RemoteEndPoint.ToString & " -> " & args(1))
+            If socnumToIp.ContainsKey(args(1)) Then
+                socnumToIp.Add(args(1), clisoc.RemoteEndPoint.ToString)
+            Else
+                socnumToIp(args(1)) = clisoc.RemoteEndPoint.ToString
+            End If
             totalAccept += 1
-            txtTotalAccept.Text = "총 소켓 Accept: " & totalAccept.ToString
-        ElseIf kind = "RECEIVE" Then
-            ProcessMsg(args(2), args(1))
-        ElseIf kind = "SEND" Then
-            EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("SocCallback", "[SEND] " & args(1) & "bytes")
-            totalSentByte += Convert.ToUInt32(args(1))
-            txtSentBytes.Text = "총 전송 : " & Math.Round(totalSentByte / 1000.0F, 1).ToString & "kB"
-        ElseIf kind = "DISCONNECT" Then
-            EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("SocCallback", "[DISCONN] " & args(0))
-        ElseIf kind = "ERROR" Then
-            If (CType(args(1), Exception).GetType.FullName = "System.Net.Sockets.SocketException") Or args(0) = "CFUNC_SEND" Then
+                txtTotalAccept.Text = "총 소켓 Accept: " & totalAccept.ToString
+            ElseIf kind = "RECEIVE" Then
+                ProcessMsg(args(2), args(1))
+            ElseIf kind = "SEND" Then
+                EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("SocCallback", "[SEND] " & args(1) & "bytes")
+                totalSentByte += Convert.ToUInt32(args(1))
+                txtSentBytes.Text = "총 전송 : " & Math.Round(totalSentByte / 1000.0F, 1).ToString & "kB"
+            ElseIf kind = "DISCONNECT" Then
+                EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("SocCallback", "[DISCONN] " & args(0))
+            ElseIf kind = "ERROR" Then
+                If (CType(args(1), Exception).GetType.FullName = "System.Net.Sockets.SocketException") Or args(0) = "CFUNC_SEND" Then
                 If Thread.CurrentThread.Name.Contains("SEND") Then
                     Print("ERROR", "", "SENDIMG or SENDTHIMG Abort")
                     Thread.CurrentThread.Abort()
@@ -177,7 +183,11 @@ Public Class frmMain
                     nowsess.SessionStatus = Session.SessionFlag.NoCredential
                     nowsess.CredentialStartTime = Now
                     SessionList.Add(sid.ToString, nowsess)
-                    Print("ISSUESESSION", sid.ToString.Substring(0, 6), socnum & " → " & sid.ToString)
+                    If socnumToIp.ContainsKey(socnum) Then
+                        Print("ISSUESESSION", sid.ToString.Substring(0, 6), socnum & "(" & socnumToIp(socnum) & ") → " & sid.ToString)
+                    Else
+                        Print("ISSUESESSION", sid.ToString.Substring(0, 6), socnum & " → " & sid.ToString)
+                    End If
                 ElseIf reqName = "TRYDISPAUTH" Then
                     Dim nowsid = reqdata("sid")
                     If SessionList.ContainsKey(nowsid) Then
