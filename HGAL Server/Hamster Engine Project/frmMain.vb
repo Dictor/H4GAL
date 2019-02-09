@@ -36,6 +36,7 @@ Public Class frmMain
             NoCredential
             DisposableCredential
             AccountCredential
+            KakaoCredential
         End Enum
     End Class
 
@@ -141,7 +142,7 @@ Public Class frmMain
         End If
     End Sub
 
-    Private Sub ProcessMsg(data As Byte(), socnum As Integer)
+    Private Async Sub ProcessMsg(data As Byte(), socnum As Integer)
         Try
             Dim httpmsg = Encoding.UTF8.GetString(data)
             If New Regex("^GET").IsMatch(httpmsg) Then 'GET REQ시	
@@ -170,6 +171,8 @@ Public Class frmMain
                             SendREQ("GETCREDENTIAL", New JObject From {{"isNew", False}, {"status", "disposable"}, {"name", SessionList(nowsid).CredentialUserName}}, socnum)
                         ElseIf SessionList(nowsid).SessionStatus = Session.SessionFlag.AccountCredential Then
                             SendREQ("GETCREDENTIAL", New JObject From {{"isNew", False}, {"status", "account"}, {"name", SessionList(nowsid).CredentialUserName}}, socnum)
+                        ElseIf SessionList(nowsid).SessionStatus = Session.SessionFlag.AccountCredential Then
+                            SendREQ("GETCREDENTIAL", New JObject From {{"isNew", False}, {"status", "kakao"}, {"name", SessionList(nowsid).CredentialUserName}}, socnum)
                         End If
                     Else
                         SendREQ("GETCREDENTIAL", New JObject From {{"isNew", True}, {"error", ""}}, socnum)
@@ -188,97 +191,144 @@ Public Class frmMain
                     Else
                         Print("ISSUESESSION", sid.ToString.Substring(0, 6), socnum & " → " & sid.ToString)
                     End If
-                ElseIf reqName = "TRYDISPAUTH" Then
+                ElseIf reqName = "TRYKAKAOAUTH" Then
                     Dim nowsid = reqdata("sid")
                     If SessionList.ContainsKey(nowsid) Then
                         If Not SessionList(nowsid).SessionStatus = Session.SessionFlag.NoCredential Then
-                            SendREQ("TRYDISPAUTH", New JObject From {{"status", False}, {"error", "ILLEGAL_CREDENTIAL"}}, socnum)
+                            SendREQ("TRYKAKAOAUTH", New JObject From {{"status", False}, {"error", "ILLEGAL_CREDENTIAL"}}, socnum)
                             Exit Sub
+                        Else
+                            Dim nowToken As String = reqdata("token")
+                            Dim nowResp = Await KakaoAuth.GetTokenInfo(nowToken)
+                            Dim kname = nowResp("properties")("nickname"), kuid = nowResp("id")
+                            If UDB_hasUser(kuid) Then
+                                SessionList(nowsid).SessionStatus = Session.SessionFlag.KakaoCredential
+                                SessionList(nowsid).CredentialUserName = UDB_getUserInfo(kuid)("NAME")
+                                SendREQ("TRYKAKAOAUTH", New JObject From {{"status", True}}, socnum)
+                            Else
+                                SendREQ("TRYKAKAOAUTH", New JObject From {{"status", False}, {"error, NEED_REGISTER"}}, socnum)
+                            End If
                         End If
-                        Dim nowstuid As Integer
-                        If Integer.TryParse(reqdata("stuid"), nowstuid) Then
-                            If Uri.UnescapeDataString(reqdata("name").ToString).Length > 5 Then
-                                SendREQ("TRYDISPAUTH", New JObject From {{"status", False}, {"error", "ILLEGAL_NAME"}}, socnum)
+                    Else
+                        SendREQ("TRYKAKAOAUTH", New JObject From {{"status", False}, {"error", "INVALID_SESSION"}}, socnum)
+                    End If
+                ElseIf reqName = "REGISTERKAKAOAUTH" Then
+                    Dim nowsid = reqdata("sid")
+                    If SessionList.ContainsKey(nowsid) Then
+                        If Not SessionList(nowsid).SessionStatus = Session.SessionFlag.NoCredential Then
+                            SendREQ("REGISTERKAKAOAUTH", New JObject From {{"status", False}, {"error", "ILLEGAL_CREDENTIAL"}}, socnum)
+                            Exit Sub
+                        Else
+                            Dim nowToken As String = reqdata("token")
+                            Dim nowResp = Await KakaoAuth.GetTokenInfo(nowToken)
+                            Dim kname = nowResp("properties")("nickname"), kuid = nowResp("id")
+                            If UDB_hasUser(kuid) Then
+                                SendREQ("REGISTERKAKAOAUTH", New JObject From {{"status", False}, {"error", "ALREADY_REGISTERED"}}, socnum)
+                            Else
+                                If KakaoAuth.CheckRegisterCode(reqdata("code")) Then
+                                    UDB_setUser(kuid, New Dictionary(Of String, String) From {{"NAME", kname}})
+                                    UDB_save()
+                                    SendREQ("REGISTERKAKAOAUTH", New JObject From {{"status", True}}, socnum)
+                                Else
+                                    SendREQ("REGISTERKAKAOAUTH", New JObject From {{"status", False}, {"error", "INCORRECT_CODE"}}, socnum)
+                                End If
+                                SendREQ("REGISTERKAKAOAUTH", New JObject From {{"status", True}}, socnum)
+                            End If
+                        End If
+                    Else
+                        SendREQ("REGISTERKAKAOAUTH", New JObject From {{"status", False}, {"error", "INVALID_SESSION"}}, socnum)
+                    End If
+                ElseIf reqName = "TRYDISPAUTH" Then
+                        Dim nowsid = reqdata("sid")
+                        If SessionList.ContainsKey(nowsid) Then
+                            If Not SessionList(nowsid).SessionStatus = Session.SessionFlag.NoCredential Then
+                                SendREQ("TRYDISPAUTH", New JObject From {{"status", False}, {"error", "ILLEGAL_CREDENTIAL"}}, socnum)
                                 Exit Sub
                             End If
-                            If nowstuid > 30000 And nowstuid < 40000 Then
-                                Dim codecorrect As Boolean = False
-                                For Each nowcode In DispAuthCodelist
-                                    If SHA256Hash(nowcode + nowcode.Length.ToString) = reqdata("code") Then
-                                        codecorrect = True
+                            Dim nowstuid As Integer
+                            If Integer.TryParse(reqdata("stuid"), nowstuid) Then
+                                If Uri.UnescapeDataString(reqdata("name").ToString).Length > 5 Then
+                                    SendREQ("TRYDISPAUTH", New JObject From {{"status", False}, {"error", "ILLEGAL_NAME"}}, socnum)
+                                    Exit Sub
+                                End If
+                                If nowstuid > 30000 And nowstuid < 40000 Then
+                                    Dim codecorrect As Boolean = False
+                                    For Each nowcode In DispAuthCodelist
+                                        If SHA256Hash(nowcode + nowcode.Length.ToString) = reqdata("code") Then
+                                            codecorrect = True
+                                        End If
+                                    Next
+                                    If codecorrect Then
+                                        SendREQ("TRYDISPAUTH", New JObject From {{"status", True}}, socnum)
+                                        SessionList(nowsid).CredentialUserName = Uri.UnescapeDataString(reqdata("name").ToString)
+                                        SessionList(nowsid).SessionStatus = Session.SessionFlag.DisposableCredential
+                                        SessionList(nowsid).otherData.Add("STUID", reqdata("stuid"))
+                                        Print("DISPAUTH", nowsid.ToString.Substring(0, 6), "'" & SessionList(nowsid).CredentialUserName & "'(" & SessionList(nowsid).otherData("STUID") & ") -> 코드 '" & reqdata("code").ToString & "'")
+                                    Else
+                                        SendREQ("TRYDISPAUTH", New JObject From {{"status", False}, {"error", "INCORRECT_CODE"}}, socnum)
                                     End If
-                                Next
-                                If codecorrect Then
-                                    SendREQ("TRYDISPAUTH", New JObject From {{"status", True}}, socnum)
-                                    SessionList(nowsid).CredentialUserName = Uri.UnescapeDataString(reqdata("name").ToString)
-                                    SessionList(nowsid).SessionStatus = Session.SessionFlag.DisposableCredential
-                                    SessionList(nowsid).otherData.Add("STUID", reqdata("stuid"))
-                                    Print("DISPAUTH", nowsid.ToString.Substring(0, 6), "'" & SessionList(nowsid).CredentialUserName & "'(" & SessionList(nowsid).otherData("STUID") & ") -> 코드 '" & reqdata("code").ToString & "'")
                                 Else
-                                    SendREQ("TRYDISPAUTH", New JObject From {{"status", False}, {"error", "INCORRECT_CODE"}}, socnum)
+                                    SendREQ("TRYDISPAUTH", New JObject From {{"status", False}, {"error", "ILLEGAL_STUID"}}, socnum)
                                 End If
                             Else
                                 SendREQ("TRYDISPAUTH", New JObject From {{"status", False}, {"error", "ILLEGAL_STUID"}}, socnum)
                             End If
                         Else
-                            SendREQ("TRYDISPAUTH", New JObject From {{"status", False}, {"error", "ILLEGAL_STUID"}}, socnum)
+                            SendREQ("TRYDISPAUTH", New JObject From {{"status", False}, {"error", "INVALID_SESSION"}}, socnum)
                         End If
-                    Else
-                        SendREQ("TRYDISPAUTH", New JObject From {{"status", False}, {"error", "INVALID_SESSION"}}, socnum)
-                    End If
-                ElseIf reqName = "GETIMGLIST" Then
-                    Dim nowsid = reqdata("sid")
-                    If SessionList.ContainsKey(nowsid) Then
-                        Dim nowpath = reqdata("dir").ToString
-                        nowpath = Uri.UnescapeDataString(nowpath)
-                        nowpath = Replace(nowpath, "/", "\")
-                        nowpath = EscapeDirectoryPath(nowpath)
-                        Dim fileopener As Object = Project.HEfile.CopyMe()
-                        Print("GETIMGLIST", nowsid.ToString.Substring(0, 6), Application.StartupPath & "\image" & nowpath + "imglist.lst")
-                        fileopener.SetFile(Application.StartupPath & "\image" & nowpath + "imglist.lst", Encoding.UTF8)
-                        If fileopener.Exist() Then
-                            Dim nowlist = Split(fileopener.ReadText(), vbCrLf)
-                            'ALBUM,TEST1,테스트 앨범 제목 1,테스트 앨범 제목 2,NONE 썸네일,ALL 권한
-                            Dim listtojson As New JArray
-                            For Each nowele As String In nowlist
-                                Dim nowprop As String() = Split(nowele, ",")
-                                If nowprop(0) = "AUTOPHOTO" Then
-                                    Dim imgfileobj As Object = Project.HEfile.CopyMe()
-                                    imgfileobj.Directory.SetDirectory(Application.StartupPath & "\image" & nowpath)
-                                    Dim imgfilelst As String() = imgfileobj.Directory.GetFile()
-                                    For Each nowfile As String In imgfilelst
-                                        If isImageFilePath(nowfile) Then
-                                            listtojson.Add(New JObject From {{"type", "PHOTO"}, {"dir", nowfile.Split("\").Last}, {"title", nowfile.Split("\").Last}, {"detail", Nothing}, {"thimg", ComputeFileHash(nowfile)}, {"isautoth", True}})
-                                        End If
-                                    Next
-                                    Exit For
-                                End If
-                                listtojson.Add(New JObject From {{"type", nowprop(0)}, {"dir", nowprop(1)}, {"title", nowprop(2)}, {"detail", nowprop(3)}, {"thimg", nowprop(4)}, {"isautoth", False}})
-                            Next
-                            SendREQ("GETIMGLIST", New JObject From {{"status", True}, {"result", listtojson}}, socnum)
+                    ElseIf reqName = "GETIMGLIST" Then
+                        Dim nowsid = reqdata("sid")
+                        If SessionList.ContainsKey(nowsid) Then
+                            Dim nowpath = reqdata("dir").ToString
+                            nowpath = Uri.UnescapeDataString(nowpath)
+                            nowpath = Replace(nowpath, "/", "\")
+                            nowpath = EscapeDirectoryPath(nowpath)
+                            Dim fileopener As Object = Project.HEfile.CopyMe()
+                            Print("GETIMGLIST", nowsid.ToString.Substring(0, 6), Application.StartupPath & "\image" & nowpath + "imglist.lst")
+                            fileopener.SetFile(Application.StartupPath & "\image" & nowpath + "imglist.lst", Encoding.UTF8)
+                            If fileopener.Exist() Then
+                                Dim nowlist = Split(fileopener.ReadText(), vbCrLf)
+                                'ALBUM,TEST1,테스트 앨범 제목 1,테스트 앨범 제목 2,NONE 썸네일,ALL 권한
+                                Dim listtojson As New JArray
+                                For Each nowele As String In nowlist
+                                    Dim nowprop As String() = Split(nowele, ",")
+                                    If nowprop(0) = "AUTOPHOTO" Then
+                                        Dim imgfileobj As Object = Project.HEfile.CopyMe()
+                                        imgfileobj.Directory.SetDirectory(Application.StartupPath & "\image" & nowpath)
+                                        Dim imgfilelst As String() = imgfileobj.Directory.GetFile()
+                                        For Each nowfile As String In imgfilelst
+                                            If isImageFilePath(nowfile) Then
+                                                listtojson.Add(New JObject From {{"type", "PHOTO"}, {"dir", nowfile.Split("\").Last}, {"title", nowfile.Split("\").Last}, {"detail", Nothing}, {"thimg", ComputeFileHash(nowfile)}, {"isautoth", True}})
+                                            End If
+                                        Next
+                                        Exit For
+                                    End If
+                                    listtojson.Add(New JObject From {{"type", nowprop(0)}, {"dir", nowprop(1)}, {"title", nowprop(2)}, {"detail", nowprop(3)}, {"thimg", nowprop(4)}, {"isautoth", False}})
+                                Next
+                                SendREQ("GETIMGLIST", New JObject From {{"status", True}, {"result", listtojson}}, socnum)
+                            Else
+                                SendREQ("GETIMGLIST", New JObject From {{"status", False}, {"error", "INVALID_PATH"}}, socnum)
+                            End If
                         Else
-                            SendREQ("GETIMGLIST", New JObject From {{"status", False}, {"error", "INVALID_PATH"}}, socnum)
+                            SendREQ("GETIMGLIST", New JObject From {{"status", False}, {"error", "INVALID_SESSION"}}, socnum)
                         End If
-                    Else
-                        SendREQ("GETIMGLIST", New JObject From {{"status", False}, {"error", "INVALID_SESSION"}}, socnum)
-                    End If
-                ElseIf reqName = "GETIMG" Then
-                    Dim nowsid = reqdata("sid")
-                    If SessionList.ContainsKey(nowsid) Then
-                        Dim nowpath = reqdata("dir").ToString
-                        nowpath = Uri.UnescapeDataString(nowpath)
-                        nowpath = Replace(nowpath, "/", "\")
-                        nowpath = EscapeDirectoryPath(nowpath)
-                        Dim nowthread As Thread = New Thread(Sub()
-                                                                 SendImg(nowsid, socnum, nowpath)
-                                                             End Sub)
-                        nowthread.Name = "SENDIMG" & socnum.ToString
-                        nowthread.Start()
-                    Else
-                        SendREQ("GETIMG", New JObject From {{"status", False}, {"error", "INVALID_SESSION"}}, socnum)
-                    End If
-                ElseIf reqName = "GETTHUMB" Then
-                    Dim nowsid = reqdata("sid")
+                    ElseIf reqName = "GETIMG" Then
+                        Dim nowsid = reqdata("sid")
+                        If SessionList.ContainsKey(nowsid) Then
+                            Dim nowpath = reqdata("dir").ToString
+                            nowpath = Uri.UnescapeDataString(nowpath)
+                            nowpath = Replace(nowpath, "/", "\")
+                            nowpath = EscapeDirectoryPath(nowpath)
+                            Dim nowthread As Thread = New Thread(Sub()
+                                                                     SendImg(nowsid, socnum, nowpath)
+                                                                 End Sub)
+                            nowthread.Name = "SENDIMG" & socnum.ToString
+                            nowthread.Start()
+                        Else
+                            SendREQ("GETIMG", New JObject From {{"status", False}, {"error", "INVALID_SESSION"}}, socnum)
+                        End If
+                    ElseIf reqName = "GETTHUMB" Then
+                        Dim nowsid = reqdata("sid")
                     If SessionList.ContainsKey(nowsid) Then
                         Dim nowpath = reqdata("thid").ToString
                         nowpath = Replace(nowpath, "/", "\")
@@ -395,16 +445,6 @@ Public Class frmMain
     Private Sub lstLog_SizeChanged(sender As Object, e As EventArgs) Handles lstLog.SizeChanged
         lstLog.Columns.Item(3).Width = lstLog.Width - (lstLog.Columns.Item(0).Width + lstLog.Columns.Item(1).Width + lstLog.Columns.Item(2).Width)
     End Sub
-
-    Public Function SHA256Hash(ByVal data As String) As String
-        Dim sha As SHA256 = New SHA256Managed()
-        Dim hash As Byte() = sha.ComputeHash(Encoding.ASCII.GetBytes(data))
-        Dim stringBuilder As StringBuilder = New StringBuilder()
-        For Each b As Byte In hash
-            stringBuilder.AppendFormat("{0:x2}", b)
-        Next
-        Return stringBuilder.ToString()
-    End Function
 
     Public Shared Function EscapeFilePath(ByVal s As String) As String
         Dim regex As Regex = New Regex(String.Format("[{0}]", Regex.Escape(New String(Path.GetInvalidFileNameChars()))))

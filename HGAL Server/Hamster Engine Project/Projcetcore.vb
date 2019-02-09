@@ -2,7 +2,7 @@
 
 'Hamster Engine v2.0용 Project Adapter
 Public Class Project
-    Public Shared Version As New HamsterVersion("HGAL Server", 1, 0, 190209, 41) '이 부분을 수정해 프로젝트의 버전을 수정하세요.
+    Public Shared Version As New HamsterVersion("HGAL Server", 1, 0, 190209, 42) '이 부분을 수정해 프로젝트의 버전을 수정하세요.
     '("개체 식별자 문자열", {"어셈블리 경로"})
     Private Shared LoadObject_PROJ_Info As New Dictionary(Of String, Object())
 
