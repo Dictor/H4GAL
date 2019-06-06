@@ -19,9 +19,7 @@ var ctr_index = {
     loginWithKakao : function () {
         Kakao.Auth.login({
           success: function(authObj) {
-            Kakao.Auth.getStatus(function(statusObj) {
-                alert("현재 카카오 로그인은 준비 중입니다! (UID : " + statusObj["user"]["id"] + "→" + statusObj["user"]["properties"]["nickname"] + ")");
-            });
+            ws.makeREQ("TRYKAKAOAUTH", {"sid": sid, "token": Kakao.Auth.getAccessToken()});
           },
           fail: function(err) {
             alert("로그인 시도 중 오류가 발생했습니다! : " + JSON.stringify(err));
@@ -61,9 +59,11 @@ var ctr_index = {
                         $("#statusdiv_error").hide();			
                         $("#statusdiv_conn").hide();
                     } else if  (reqData["status"] == "account"){
-                        location.href = "gallery.html"
+                        location.href = "gallery.html";
                     } else if  (reqData["status"] == "disposable"){
-                        location.href = "gallery.html"
+                        location.href = "gallery.html";
+                    } else if  (reqData["status"] == "kakao"){
+                        location.href = "gallery.html";
                     }
                 }
             } else if (reqName == "ISSUESESSION"){
@@ -76,6 +76,50 @@ var ctr_index = {
                     window.location.reload();
                 } else {
                     alert("오류가 발생했습니다! (" + reqData["error"] + ")");
+                }
+            } else if (reqName == "TRYKAKAOAUTH"){
+                if (reqData["status"]){
+                    window.location.reload();
+                } else {
+                    switch(reqData["error"]) {
+                        case "NEED_REGISTER":
+                            if(confirm("카카오 로그인을 이용하기 위한 등록 과정이 필요합니다. 등록을 진행하시겠습니까?")){
+                                var code = prompt("등록을 위해 관리자로 부터 제공받은 자격증명코드를 입력해주세요.");
+                                ws.makeREQ("REGISTERKAKAOAUTH",{"sid": sid, "token": Kakao.Auth.getAccessToken(), "code": SHA256(code + code.length)});
+                            }
+                            break;
+                        case "ILLEGAL_CREDENTIAL":
+                            alert("오류가 발생했습니다! (올바르지 않은 카카오 자격증명 정보)");
+                            break;
+                        case "INVALID_SESSION":
+                            alert("오류가 발생했습니다! (올바르지 않은 세션)");
+                            break;
+                        default:
+                            alert("오류가 발생했습니다!");
+                            break;
+                    }
+                }
+            } else if (reqName == "REGISTERKAKAOAUTH"){
+                if (reqData["status"]){
+                    alert("등록에 성공했습니다. 다시 카카오 로그인을 진행해주세요.")
+                } else {
+                    switch(reqData["error"]) {
+                        case "INCORRECT_CODE":
+                            alert("오류가 발생했습니다! (올바르지 않은 자격증명코드)");
+                            break;
+                        case "ILLEGAL_CREDENTIAL":
+                            alert("오류가 발생했습니다! (올바르지 않은 카카오 자격증명 정보)");
+                            break;
+                        case "INVALID_SESSION":
+                            alert("오류가 발생했습니다! (올바르지 않은 세션)");
+                            break;
+                        case "ALREADY_REGISTERED":
+                            alert("오류가 발생했습니다! (이미 등록된 계정)");
+                            break;
+                        default:
+                            alert("오류가 발생했습니다!");
+                            break;
+                    }
                 }
             } else if (reqName == "SHOWALERT"){
                 alert(reqData["msg"]);

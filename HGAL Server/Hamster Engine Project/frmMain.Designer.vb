@@ -104,7 +104,7 @@ Partial Class frmMain
         '
         'colUser
         '
-        Me.colUser.Text = "자격증명"
+        Me.colUser.Text = "세션"
         Me.colUser.Width = 80
         '
         'colContent

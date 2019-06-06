@@ -83,9 +83,11 @@ Public Class frmMain
             DispAuthCodelist = Split(fileopener.ReadText(), vbCrLf)
             Print("INIT", "", "엑세스 코드 리스트 읽기 완료")
             AddHandler clichecktim.Elapsed, AddressOf CheckSession
-            clichecktim.AutoReset = False
+            clichecktim.AutoReset = True
             clichecktim.Start()
             Print("INIT", "", "세션 검사 타이머 시작 완료")
+            KakaoAuth.Init()
+            Print("INIT", "", "카카오 API 초기화 완료")
             Print("INIT", "", "썸네일 검사 시작")
             MakeThumbNail()
             Print("INIT", "", "썸네일 검사 완료")
@@ -96,13 +98,13 @@ Public Class frmMain
     End Sub
 
     Private Sub CheckSession()
+        txtAvailSess.Text = "활성 세션: " & SessionList.Count.ToString
         For Each nowSess In SessionList
             If (Now - nowSess.Value.CredentialStartTime).TotalMinutes > sessionExpireMinute Then
                 Print("CHECKSESSION", "", "SID : '" & nowSess.Key & "'세션 만료")
                 SessionList.Remove(nowSess.Key)
             End If
         Next
-        txtAvailSess.Text = "활성 세션: " & SessionList.Count.ToString
     End Sub
 
     Public Sub SocCallback(kind As String, args As Object())
@@ -171,7 +173,7 @@ Public Class frmMain
                             SendREQ("GETCREDENTIAL", New JObject From {{"isNew", False}, {"status", "disposable"}, {"name", SessionList(nowsid).CredentialUserName}}, socnum)
                         ElseIf SessionList(nowsid).SessionStatus = Session.SessionFlag.AccountCredential Then
                             SendREQ("GETCREDENTIAL", New JObject From {{"isNew", False}, {"status", "account"}, {"name", SessionList(nowsid).CredentialUserName}}, socnum)
-                        ElseIf SessionList(nowsid).SessionStatus = Session.SessionFlag.AccountCredential Then
+                        ElseIf SessionList(nowsid).SessionStatus = Session.SessionFlag.KakaoCredential Then
                             SendREQ("GETCREDENTIAL", New JObject From {{"isNew", False}, {"status", "kakao"}, {"name", SessionList(nowsid).CredentialUserName}}, socnum)
                         End If
                     Else
@@ -205,8 +207,9 @@ Public Class frmMain
                                 SessionList(nowsid).SessionStatus = Session.SessionFlag.KakaoCredential
                                 SessionList(nowsid).CredentialUserName = UDB_getUserInfo(kuid)("NAME")
                                 SendREQ("TRYKAKAOAUTH", New JObject From {{"status", True}}, socnum)
+                                Print("TRYKAKAOAUTH", nowsid.ToString.Substring(0, 6), "'" & kname.ToString & "'(" & kuid.ToString & ") -> 토큰 '" & reqdata("token").ToString & "'")
                             Else
-                                SendREQ("TRYKAKAOAUTH", New JObject From {{"status", False}, {"error, NEED_REGISTER"}}, socnum)
+                                SendREQ("TRYKAKAOAUTH", New JObject From {{"status", False}, {"error", "NEED_REGISTER"}}, socnum)
                             End If
                         End If
                     Else
@@ -229,10 +232,10 @@ Public Class frmMain
                                     UDB_setUser(kuid, New Dictionary(Of String, String) From {{"NAME", kname}})
                                     UDB_save()
                                     SendREQ("REGISTERKAKAOAUTH", New JObject From {{"status", True}}, socnum)
+                                    Print("REGISTERKAKAOAUTH", nowsid.ToString.Substring(0, 6), "'" & kname.ToString & "'(" & kuid.ToString & ") -> 코드 '" & reqdata("code").ToString & "'")
                                 Else
                                     SendREQ("REGISTERKAKAOAUTH", New JObject From {{"status", False}, {"error", "INCORRECT_CODE"}}, socnum)
                                 End If
-                                SendREQ("REGISTERKAKAOAUTH", New JObject From {{"status", True}}, socnum)
                             End If
                         End If
                     Else

@@ -71,6 +71,9 @@ var ctr_gallery = {
                     } else if  (reqData["status"] == "disposable"){
                         $(".gtitletxt").css("display") == "none" ? $("#txtAuthInfo").text("D" + reqData["name"]) : $("#txtAuthInfo").text("사용자 : D" + reqData["name"]);
                         ctr_gallery.showImgList();
+                    } else if  (reqData["status"] == "kakao"){
+                        $(".gtitletxt").css("display") == "none" ? $("#txtAuthInfo").text("K" + reqData["name"]) : $("#txtAuthInfo").text("사용자 : K" + reqData["name"]);
+                        ctr_gallery.showImgList();
                     } else if  (reqData["status"] == "account"){
                         $(".gtitletxt").css("display") == "none" ? $("#txtAuthInfo").text(reqData["name"]) : $("#txtAuthInfo").text("사용자 : " + reqData["name"]);
                         ctr_gallery.showImgList();

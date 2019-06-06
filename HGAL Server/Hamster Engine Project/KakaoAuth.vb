@@ -6,7 +6,7 @@ Imports Newtonsoft.Json.Linq
 
 Module KakaoAuth
     Private APIadminKey As String = Nothing
-    Private Const APIhost As String = "kapi.kakao.com"
+    Private Const APIhost As String = "https://kapi.kakao.com"
 
     Private Const APIuserInfo_uri As String = "/v2/user/me"
     Private Const APIuserInfo_auth As String = "Bearer "
@@ -19,7 +19,12 @@ Module KakaoAuth
     Public Sub Init()
         APIadminKey = File.ReadAllText(EngineWrapper.EngineArgument.ApplicationStartupPath & "\data\kakaoapi_adminkey.txt")
         userDBPath = EngineWrapper.EngineArgument.ApplicationStartupPath & "\data\kakaoapi_user.db"
-        userDB = ReadMulti(userDBPath)
+        If Not File.Exists(userDBPath) Then
+            userDB = New Dictionary(Of String, Dictionary(Of String, String))
+            Write(userDBPath, userDB)
+        Else
+            userDB = ReadMulti(userDBPath)
+        End If
         userRegisterCode = Split(File.ReadAllText(EngineWrapper.EngineArgument.ApplicationStartupPath & "\data\kakaoapi_registercode.txt"))
     End Sub
 
@@ -31,7 +36,7 @@ Module KakaoAuth
         nowContent.ContentType = APIuserInfo_contenType
         Dim getResp As Task(Of WebResponse) = nowReq.GetResponseAsync()
         Dim nowResp As WebResponse = Await getResp
-        Dim respStream As New StreamReader(nowResp.GetResponseStream, Encoding.Default)
+        Dim respStream As New StreamReader(nowResp.GetResponseStream, Encoding.UTF8)
         Dim respString As String = respStream.ReadToEnd
         Dim respJson As JObject = JObject.Parse(respString)
         respStream.Close()
