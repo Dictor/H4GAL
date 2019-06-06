@@ -154,7 +154,13 @@ Public Class frmMain
                 totalHandshake += 1
                 txtTotalHandshake.Text = "총 WS H/S: " & totalHandshake.ToString
             Else 'NON-GET REQ시
-                Dim msg As String = DecodeMessage(data)
+                Dim msg As String
+                Try
+                    msg = DecodeMessage(data)
+                Catch ex As ArgumentOutOfRangeException
+                    EngineWrapper.EngineFunction.EFUNC_LogWriteP.DynamicInvoke("ProcessMsg", "웹 소켓 메세지 디코드 오류 (ArgumentOutOfRangeException)")
+                    Exit Sub
+                End Try
                 'Print("[SOCKET]" & socnum & "번 소켓에서 데이터 수신 : '" & msg & "'")
                 Dim pmsg As String() = Split(msg, "#")
                 Dim reqName As String = pmsg(0)
