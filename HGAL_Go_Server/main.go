@@ -58,6 +58,8 @@ func rTryDisposableAuth(cxt echo.Context) error {
 	hassess := hasSession(cxt)
 	reqdata := echo.Map{}
 	if err := cxt.Bind(&reqdata); err != nil {
+		log.Print("Unexpected request bind error! : ")
+		log.Println(err)
 		return cxt.JSON(http.StatusOK, map[string]string{"status": "false", "error": "INVALID_REQUEST"})
 	}
 
@@ -102,12 +104,12 @@ func rTryDisposableAuth(cxt echo.Context) error {
 				setSessionValue(cxt, "user_name", resname)
 			}
 		} else {
-			return cxt.JSON(http.StatusOK, map[string]string{"status": "false", "error": "ILLEGAL_CREDENTIAL"})
+			return cxt.JSON(http.StatusOK, map[string]string{"status": "true"})
 		}
 	} else {
 		return cxt.JSON(http.StatusOK, map[string]string{"status": "false", "error": "INVALID_SESSION"})
 	}
-	return cxt.String(http.StatusOK, "Unexpected Function!!")
+	return cxt.JSON(http.StatusOK, map[string]string{"status": "false", "error": "INTERNAL_SERVER_ERROR"})
 }
 
 func rCheckSession(cxt echo.Context) error {
