@@ -102,14 +102,15 @@ func rTryDisposableAuth(cxt echo.Context) error {
 			if codeok && nameok {
 				setSessionValue(cxt, "credential_type", "disp")
 				setSessionValue(cxt, "user_name", resname)
+				return cxt.JSON(http.StatusOK, map[string]string{"status": "true"})
 			}
 		} else {
-			return cxt.JSON(http.StatusOK, map[string]string{"status": "true"})
+			return cxt.JSON(http.StatusOK, map[string]string{"status": "false", "error": "ILLEGAL_CREDENTIAL"})
 		}
 	} else {
 		return cxt.JSON(http.StatusOK, map[string]string{"status": "false", "error": "INVALID_SESSION"})
 	}
-	return cxt.JSON(http.StatusOK, map[string]string{"status": "false", "error": "INTERNAL_SERVER_ERROR"})
+	return cxt.JSON(http.StatusOK, map[string]string{"status": "false", "error": "INTERNAL_SERVER_ERROR"}) //When all expected situation must not be reach here
 }
 
 func rCheckSession(cxt echo.Context) error {
