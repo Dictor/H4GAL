@@ -7,27 +7,26 @@ var ctr_gallery = {
     imgbindlist : {},
     autothbindlist : {},
     init : function(){
-            ws.init();
-            window.onload = function() {
-                $("#errbox").alert();
-                $(".loadPopup").hide();
-                $(".viewPopup").hide();
-            };
-        },
-    showErr : function(detailtxt) {
-            $("#errtxt").text(detailtxt);
-            $("#errbox").show();
-        },
+        window.onload = function() {
+            $("#gallery-error-box").alert();
+            $(".gallery-load-popup").hide();
+            $(".gallery-view-popup").hide();
+        };
+    },
+    ShowErrorPopup : function(detail) {
+        $("#gallery-error-box-txt").text(detailtxt);
+        $("gallery-error-box").show();
+    },
     showImgList : function() {
             ws.makeREQ("GETIMGLIST", {"sid": sid, "dir": encodeURI(ctr_gallery.nowdir)});
         },
     go : function(isalbum, dir) {
         if (isalbum) {
             ctr_gallery.nowdir += dir;
-            $(".loadPopup").show();
+            $(".gallery-load-popup").show();
             ctr_gallery.showImgList();
         } else {
-            $(".loadPopup").show();
+            $(".gallery-load-popup").show();
             ctr_gallery.imgbindlist[ctr_gallery.nowdir + dir] = "vpimg";
             ws.makeREQ("GETIMG", {"sid": sid, "dir": encodeURI(ctr_gallery.nowdir + dir)});
         }
