@@ -11,18 +11,63 @@ import (
 	"unicode/utf8"
 )
 
+type RequestCheckParameter int
+
+const (
+	NEED_ASSIGNED_SESSION RequestCheckParameter = 0 + 2*iota
+	NEED_VALID_CREDENTIAL
+	NEED_VALID_REQUEST_DATA
+	NEED_ALL = NEED_ASSIGNED_SESSION & NEED_VALID_CREDENTIAL & NEED_VALID_REQUEST_DATA
+)
+
+func checkRequest(cxt echo.Context, params RequestCheckParameter) (bool, map[string]interface{}, map[string]interface{}) {
+	if params&NEED_ASSIGNED_SESSION == NEED_ASSIGNED_SESSION {
+		if !hasSession(cxt) {
+			return false, map[string]interface{}{"status": false, "error": "INVALID_SESSION"}, nil
+		}
+	}
+	if params&NEED_VALID_CREDENTIAL == NEED_VALID_CREDENTIAL {
+		if getSessionValue(cxt, "credential_type") == "empty" {
+			return false, map[string]interface{}{"status": false, "error": "IMPROPER_CREDENTIAL"}, nil
+		}
+	}
+	if params&NEED_VALID_REQUEST_DATA == NEED_VALID_REQUEST_DATA {
+		if res, reqdata := getRequestData(cxt); !res {
+			return false, map[string]interface{}{"status": false, "error": "INVALID_REQUEST"}, nil
+		} else {
+			return true, nil, reqdata
+		}
+	}
+	return true, nil, nil
+}
+
+func setRounting(e *echo.Echo) {
+	//routing
+	/*main_server.POST("/info")
+	main_server.POST("/auth/kakao/try")
+	main_server.GET("/auth/kakao/register")
+	main_server.GET("/thumb")*/
+	e.GET("/", func(cxt echo.Context) error {
+		return cxt.JSON(http.StatusOK, map[string]interface{}{"name": "HGAL API Server", "version": "191116"})
+	})
+	e.GET("/session/check", rCheckSession)
+	e.GET("/session/assign", rAssignSession)
+	e.POST("/auth/disp/try", rTryDisposableAuth)
+	e.GET("/list", rGetImageList)
+	e.GET("/image", rGetImage)
+	e.Static("/web", "../Web")
+}
+
 func rGetImageList(cxt echo.Context) error {
 	return cxt.NoContent(http.StatusOK)
 }
 
 func rGetImage(cxt echo.Context) error {
-	if succ, reqdata := getRequestData(cxt); succ {
-		if hassess := hasSession(cxt); hassess {
-		}
+	if res, errdata, reqdata := checkRequest(cxt, NEED_ALL); !res {
+		return cxt.JSON(http.StatusOK, errdata)
 	} else {
-		return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "INVALID_REQUEST"})
 	}
-	return cxt.NoContent(http.StatusOK)
+	return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "INTERNAL_SERVER_ERROR"}) //When all expected situation, code must not be reach here
 }
 
 func rTryDisposableAuth(cxt echo.Context) error {
