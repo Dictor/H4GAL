@@ -20,8 +20,8 @@ type RequestCheckParameter int
 const (
 	NEED_ASSIGNED_SESSION RequestCheckParameter = 0 + 2*iota
 	NEED_VALID_CREDENTIAL
-	NEED_VALID_REQUEST_DATA
-	NEED_ALL = NEED_ASSIGNED_SESSION | NEED_VALID_CREDENTIAL | NEED_VALID_REQUEST_DATA
+	NEED_POST_REQUEST_DATA
+	NEED_ALL = NEED_ASSIGNED_SESSION | NEED_VALID_CREDENTIAL | NEED_POST_REQUEST_DATA
 )
 
 func checkRequest(cxt echo.Context, params RequestCheckParameter) (bool, map[string]interface{}, map[string]interface{}) {
@@ -35,7 +35,7 @@ func checkRequest(cxt echo.Context, params RequestCheckParameter) (bool, map[str
 			return false, map[string]interface{}{"status": false, "error": "IMPROPER_CREDENTIAL"}, nil
 		}
 	}
-	if params&NEED_VALID_REQUEST_DATA == NEED_VALID_REQUEST_DATA {
+	if params&NEED_POST_REQUEST_DATA == NEED_POST_REQUEST_DATA {
 		if res, reqdata := getPostRequestData(cxt); !res {
 			return false, map[string]interface{}{"status": false, "error": "INVALID_REQUEST"}, nil
 		} else {
