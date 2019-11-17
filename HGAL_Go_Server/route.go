@@ -21,7 +21,7 @@ const (
 	NEED_ASSIGNED_SESSION RequestCheckParameter = 0 + 2*iota
 	NEED_VALID_CREDENTIAL
 	NEED_VALID_REQUEST_DATA
-	NEED_ALL = NEED_ASSIGNED_SESSION & NEED_VALID_CREDENTIAL & NEED_VALID_REQUEST_DATA
+	NEED_ALL = NEED_ASSIGNED_SESSION | NEED_VALID_CREDENTIAL | NEED_VALID_REQUEST_DATA
 )
 
 func checkRequest(cxt echo.Context, params RequestCheckParameter) (bool, map[string]interface{}, map[string]interface{}) {
@@ -63,7 +63,7 @@ func setRounting(e *echo.Echo) {
 }
 
 func rGetImageList(cxt echo.Context) error {
-	if res, errdata, _ := checkRequest(cxt, NEED_ASSIGNED_SESSION&NEED_VALID_CREDENTIAL); !res {
+	if res, errdata, _ := checkRequest(cxt, NEED_ASSIGNED_SESSION|NEED_VALID_CREDENTIAL); !res {
 		return cxt.JSON(http.StatusOK, errdata)
 	} else {
 		if val := cxt.QueryParam("dir"); val != "" {
