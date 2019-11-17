@@ -5,9 +5,7 @@ import (
 	"github.com/kardianos/osext"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo-contrib/session"
-	"io/ioutil"
 	"log"
-	"strings"
 )
 
 var execute_path string
@@ -25,9 +23,8 @@ func main() {
 	execute_path, err = osext.ExecutableFolder()
 	checkError(err)
 	log.Println("Executing path is ", execute_path)
-	dispauthfile, err := ioutil.ReadFile(execute_path + "/allowDispAuthCode.txt")
+	allow_dispauth_code, err = readFileLines(execute_path + "/allowDispAuthCode.txt")
 	checkError(err)
-	allow_dispauth_code = strings.Split(string(dispauthfile), "\n")
 
 	main_server := echo.New()
 	main_server.Use(session.Middleware(sessions.NewFilesystemStore("", []byte("<TEST SECRET!!>"))))

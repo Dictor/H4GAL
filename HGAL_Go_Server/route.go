@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-	"strconv"
+	"strings"
 	"time"
 	"unicode/utf8"
 )
@@ -52,7 +52,7 @@ func setRounting(e *echo.Echo) {
 	main_server.GET("/auth/kakao/register")
 	main_server.GET("/thumb")*/
 	e.GET("/", func(cxt echo.Context) error {
-		return cxt.JSON(http.StatusOK, map[string]interface{}{"name": "HGAL API Server", "version": "191116"})
+		return cxt.JSON(http.StatusOK, map[string]interface{}{"name": "HGAL API Server", "version": "191117"})
 	})
 	e.GET("/session/check", rCheckSession)
 	e.GET("/session/assign", rAssignSession)
@@ -63,7 +63,48 @@ func setRounting(e *echo.Echo) {
 }
 
 func rGetImageList(cxt echo.Context) error {
-	return cxt.NoContent(http.StatusOK)
+	if res, errdata, _ := checkRequest(cxt, NEED_ASSIGNED_SESSION&NEED_VALID_CREDENTIAL); !res {
+		return cxt.JSON(http.StatusOK, errdata)
+	} else {
+		if val := cxt.QueryParam("dir"); val != "" {
+			nowpath := execute_path + "/image" + path.Clean(val)
+			dirlist, err := readFileLines(nowpath + "imglist.lst")
+			if err != nil {
+				log.Println("[rGetImageList]", err)
+				return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "PATH_INVALID"})
+			} else {
+				var reslist []interface{}
+				for _, nowline := range dirlist {
+					nowprop := strings.Split(nowline, ",")
+					if nowprop[0] == "AUTOPHOTO" {
+						files, err := ioutil.ReadDir(nowpath)
+						if err != nil {
+							log.Println("[rGetImageList]", err)
+							return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "PATH_INVALID"})
+						} else {
+							for _, file := range files {
+								if !isImageFile(file.Name()) {
+									continue
+								}
+								name, err := getThumbnailName(nowpath + file.Name())
+								if err != nil {
+									log.Println("[rGetImageList]", err)
+								} else {
+									reslist = append(reslist, map[string]interface{}{"type": "PHOTO", "dir": file.Name(), "title": file.Name(), "detail": nil, "thimg": name, "isautoth": true})
+								}
+							}
+						}
+					} else {
+						reslist = append(reslist, map[string]interface{}{"type": nowprop[0], "dir": nowprop[1], "title": nowprop[2], "detail": nowprop[3], "thimg": nowprop[4], "isautoth": false})
+					}
+				}
+				return cxt.JSON(http.StatusOK, map[string]interface{}{"status": true, "result": reslist})
+			}
+		} else {
+			return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "ILLEGAL_REQUEST"})
+		}
+	}
+	return cxt.JSON(http.StatusInternalServerError, map[string]interface{}{"status": false, "error": "INTERNAL_SERVER_ERROR"}) //When all expected situation, code must not be reach here
 }
 
 func rGetImage(cxt echo.Context) error {
@@ -75,7 +116,7 @@ func rGetImage(cxt echo.Context) error {
 			imgdata, err := ioutil.ReadFile(execute_path + "/image" + nowpath)
 			if err != nil {
 				log.Println("[rGetImage]", err)
-				return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "FILE_NOT_FOUND"})
+				return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "PATH_INVALID"})
 			} else {
 				b64imgdata := base64.StdEncoding.EncodeToString(imgdata)
 				return cxt.JSON(http.StatusOK, map[string]interface{}{"status": true, "image": b64imgdata})
@@ -84,7 +125,7 @@ func rGetImage(cxt echo.Context) error {
 			return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "ILLEGAL_REQUEST"})
 		}
 	}
-	return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "INTERNAL_SERVER_ERROR"}) //When all expected situation, code must not be reach here
+	return cxt.JSON(http.StatusInternalServerError, map[string]interface{}{"status": false, "error": "INTERNAL_SERVER_ERROR"}) //When all expected situation, code must not be reach here
 }
 
 func rTryDisposableAuth(cxt echo.Context) error {
@@ -167,5 +208,5 @@ func rAssignSession(cxt echo.Context) error {
 		sess.Values["user_name"] = ""
 	}
 	sess.Save(cxt.Request(), cxt.Response())
-	return cxt.JSON(http.StatusOK, map[string]string{"is_new": strconv.FormatBool(!exist), "assigned_time": sess.Values["assigned_time"].(string)})
+	return cxt.JSON(http.StatusOK, map[string]interface{}{"is_new": !exist, "assigned_time": sess.Values["assigned_time"].(string)})
 }
