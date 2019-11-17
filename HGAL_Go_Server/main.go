@@ -21,8 +21,10 @@ func checkError(err error) {
 }
 
 func main() {
-	execute_path, err := osext.ExecutableFolder()
+	var err error
+	execute_path, err = osext.ExecutableFolder()
 	checkError(err)
+	log.Println("Executing path is ", execute_path)
 	dispauthfile, err := ioutil.ReadFile(execute_path + "/allowDispAuthCode.txt")
 	checkError(err)
 	allow_dispauth_code = strings.Split(string(dispauthfile), "\n")

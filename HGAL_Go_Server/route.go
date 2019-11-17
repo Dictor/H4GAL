@@ -1,11 +1,15 @@
 package main
 
 import (
+	"encoding/base64"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo-contrib/session"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
+	"path"
 	"strconv"
 	"time"
 	"unicode/utf8"
@@ -32,7 +36,7 @@ func checkRequest(cxt echo.Context, params RequestCheckParameter) (bool, map[str
 		}
 	}
 	if params&NEED_VALID_REQUEST_DATA == NEED_VALID_REQUEST_DATA {
-		if res, reqdata := getRequestData(cxt); !res {
+		if res, reqdata := getPostRequestData(cxt); !res {
 			return false, map[string]interface{}{"status": false, "error": "INVALID_REQUEST"}, nil
 		} else {
 			return true, nil, reqdata
@@ -63,15 +67,28 @@ func rGetImageList(cxt echo.Context) error {
 }
 
 func rGetImage(cxt echo.Context) error {
-	if res, errdata, reqdata := checkRequest(cxt, NEED_ALL); !res {
+	if res, errdata, _ := checkRequest(cxt, NEED_ASSIGNED_SESSION&NEED_VALID_CREDENTIAL); !res {
 		return cxt.JSON(http.StatusOK, errdata)
 	} else {
+		if val := cxt.QueryParam("dir"); val != "" {
+			nowpath := path.Clean(val)
+			imgdata, err := ioutil.ReadFile(execute_path + "/image" + nowpath)
+			if err != nil {
+				log.Println("[rGetImage]", err)
+				return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "FILE_NOT_FOUND"})
+			} else {
+				b64imgdata := base64.StdEncoding.EncodeToString(imgdata)
+				return cxt.JSON(http.StatusOK, map[string]interface{}{"status": true, "image": b64imgdata})
+			}
+		} else {
+			return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "ILLEGAL_REQUEST"})
+		}
 	}
 	return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "INTERNAL_SERVER_ERROR"}) //When all expected situation, code must not be reach here
 }
 
 func rTryDisposableAuth(cxt echo.Context) error {
-	if succ, reqdata := getRequestData(cxt); succ {
+	if succ, reqdata := getPostRequestData(cxt); succ {
 		if hassess := hasSession(cxt); hassess {
 			if getSessionValue(cxt, "credential_type") == "empty" {
 				var nameok, codeok bool = false, false

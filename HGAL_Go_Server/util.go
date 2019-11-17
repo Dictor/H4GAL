@@ -6,10 +6,10 @@ import (
 	"log"
 )
 
-func getRequestData(cxt echo.Context) (bool, map[string]interface{}) {
+func getPostRequestData(cxt echo.Context) (bool, map[string]interface{}) {
 	res := make(map[string]interface{})
 	if err := cxt.Bind(&res); err != nil {
-		log.Println("[getRequestData] ", err)
+		log.Println("[getRequestData]", err)
 		return false, nil
 	} else {
 		return true, res
