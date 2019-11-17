@@ -52,7 +52,7 @@ func setRounting(e *echo.Echo) {
 	main_server.GET("/auth/kakao/register")
 	main_server.GET("/thumb")*/
 	e.GET("/", func(cxt echo.Context) error {
-		return cxt.JSON(http.StatusOK, map[string]interface{}{"name": "HGAL API Server", "version": "191117"})
+		return cxt.JSON(http.StatusOK, map[string]interface{}{"name": "HGAL API Server", "version": serverVersion})
 	})
 	e.GET("/session/check", rCheckSession)
 	e.GET("/session/assign", rAssignSession)
@@ -67,7 +67,7 @@ func rGetImageList(cxt echo.Context) error {
 		return cxt.JSON(http.StatusOK, errdata)
 	} else {
 		if val := cxt.QueryParam("dir"); val != "" {
-			nowpath := execute_path + "/image" + path.Clean(val)
+			nowpath := executionPath + "/image" + path.Clean(val)
 			dirlist, err := readFileLines(nowpath + "imglist.lst")
 			if err != nil {
 				log.Println("[rGetImageList]", err)
@@ -113,7 +113,7 @@ func rGetImage(cxt echo.Context) error {
 	} else {
 		if val := cxt.QueryParam("dir"); val != "" {
 			nowpath := path.Clean(val)
-			imgdata, err := ioutil.ReadFile(execute_path + "/image" + nowpath)
+			imgdata, err := ioutil.ReadFile(executionPath + "/image" + nowpath)
 			if err != nil {
 				log.Println("[rGetImage]", err)
 				return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "PATH_INVALID"})
@@ -155,7 +155,7 @@ func rTryDisposableAuth(cxt echo.Context) error {
 				if _, err := reqdata["code"]; !err {
 					return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "ILLEGAL_REQUEST"})
 				} else {
-					for _, nowcode := range allow_dispauth_code {
+					for _, nowcode := range allowDispAuthCode {
 						if reqdata["code"].(string) == nowcode {
 							codeok = true
 						}

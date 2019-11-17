@@ -8,8 +8,10 @@ import (
 	"log"
 )
 
-var execute_path string
-var allow_dispauth_code []string
+var executionPath string
+var allowDispAuthCode []string
+
+const serverVersion string = "191117"
 
 func checkError(err error) {
 	if err != nil {
@@ -20,11 +22,12 @@ func checkError(err error) {
 
 func main() {
 	var err error
-	execute_path, err = osext.ExecutableFolder()
+	executionPath, err = osext.ExecutableFolder()
 	checkError(err)
-	log.Println("Executing path is ", execute_path)
-	allow_dispauth_code, err = readFileLines(execute_path + "/allowDispAuthCode.txt")
+	allowDispAuthCode, err = readFileLines(executionPath + "/allowDispAuthCode.txt")
 	checkError(err)
+
+	log.Println("\n------ HGAL API Server successfully initialized!!\n* Execution path :", executionPath, "\n* Version :", serverVersion)
 
 	main_server := echo.New()
 	main_server.Use(session.Middleware(sessions.NewFilesystemStore("", []byte("<TEST SECRET!!>"))))
