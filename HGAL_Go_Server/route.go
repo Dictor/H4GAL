@@ -19,9 +19,10 @@ type RequestCheckParameter int
 
 const (
 	NEED_ASSIGNED_SESSION RequestCheckParameter = 0 + 2*iota
-	NEED_VALID_CREDENTIAL
+	NEED_UNEMPTY_CREDENTIAL
+	NEED_EMPTY_CREDENTIAL
 	NEED_POST_REQUEST_DATA
-	NEED_ALL = NEED_ASSIGNED_SESSION | NEED_VALID_CREDENTIAL | NEED_POST_REQUEST_DATA
+	NEED_VALID_USER = NEED_ASSIGNED_SESSION | NEED_UNEMPTY_CREDENTIAL | NEED_POST_REQUEST_DATA
 )
 
 func checkRequest(cxt echo.Context, params RequestCheckParameter) (bool, map[string]interface{}, map[string]interface{}) {
@@ -30,8 +31,11 @@ func checkRequest(cxt echo.Context, params RequestCheckParameter) (bool, map[str
 			return false, map[string]interface{}{"status": false, "error": "INVALID_SESSION"}, nil
 		}
 	}
-	if params&NEED_VALID_CREDENTIAL == NEED_VALID_CREDENTIAL {
-		if getSessionValue(cxt, "credential_type") == "empty" {
+	if unemcr, emcr := params&NEED_UNEMPTY_CREDENTIAL == NEED_UNEMPTY_CREDENTIAL, params&NEED_EMPTY_CREDENTIAL == NEED_EMPTY_CREDENTIAL; unemcr || emcr {
+		ctype := getSessionValue(cxt, "credential_type")
+		if ctype == "empty" && unemcr {
+			return false, map[string]interface{}{"status": false, "error": "IMPROPER_CREDENTIAL"}, nil
+		} else if ctype != "empty" && emcr {
 			return false, map[string]interface{}{"status": false, "error": "IMPROPER_CREDENTIAL"}, nil
 		}
 	}
@@ -63,7 +67,7 @@ func setRounting(e *echo.Echo) {
 }
 
 func rGetImageList(cxt echo.Context) error {
-	if res, errdata, _ := checkRequest(cxt, NEED_ASSIGNED_SESSION|NEED_VALID_CREDENTIAL); !res {
+	if res, errdata, _ := checkRequest(cxt, NEED_ASSIGNED_SESSION|NEED_UNEMPTY_CREDENTIAL); !res {
 		return cxt.JSON(http.StatusOK, errdata)
 	} else {
 		if val := cxt.QueryParam("dir"); val != "" {
@@ -108,7 +112,7 @@ func rGetImageList(cxt echo.Context) error {
 }
 
 func rGetImage(cxt echo.Context) error {
-	if res, errdata, _ := checkRequest(cxt, NEED_ASSIGNED_SESSION&NEED_VALID_CREDENTIAL); !res {
+	if res, errdata, _ := checkRequest(cxt, NEED_ASSIGNED_SESSION|NEED_UNEMPTY_CREDENTIAL); !res {
 		return cxt.JSON(http.StatusOK, errdata)
 	} else {
 		if val := cxt.QueryParam("dir"); val != "" {
@@ -129,58 +133,45 @@ func rGetImage(cxt echo.Context) error {
 }
 
 func rTryDisposableAuth(cxt echo.Context) error {
-	if succ, reqdata := getPostRequestData(cxt); succ {
-		if hassess := hasSession(cxt); hassess {
-			if getSessionValue(cxt, "credential_type") == "empty" {
-				var nameok, codeok bool = false, false
-				var resname string
-
-				//Requested name validation check
-				if name, err := reqdata["name"].(string); !err {
-					return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "ILLEGAL_REQUEST"})
-				} else {
-					if dname, err := url.QueryUnescape(name); err == nil {
-						if utf8.RuneCountInString(dname) <= 5 {
-							nameok = true
-							resname = dname
-						} else {
-							return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "ILLEGAL_NAME"})
-						}
-					} else {
-						return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "ILLEGAL_NAME"})
-					}
-				}
-
-				//Requsted code validation and correct check
-				if _, err := reqdata["code"]; !err {
-					return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "ILLEGAL_REQUEST"})
-				} else {
-					for _, nowcode := range allowDispAuthCode {
-						if reqdata["code"].(string) == nowcode {
-							codeok = true
-						}
-					}
-					if !codeok {
-						return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "INCORRECT_CODE"})
-					}
-				}
-
-				//All verify process passed, Assign disposable auth
-				if codeok && nameok {
-					setSessionValue(cxt, "credential_type", "disp")
-					setSessionValue(cxt, "user_name", resname)
-					return cxt.JSON(http.StatusOK, map[string]interface{}{"status": true})
-				}
-			} else {
-				return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "ILLEGAL_CREDENTIAL"})
-			}
-		} else {
-			return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "INVALID_SESSION"})
-		}
+	if res, errdata, reqdata := checkRequest(cxt, NEED_ASSIGNED_SESSION|NEED_POST_REQUEST_DATA|NEED_UNEMPTY_CREDENTIAL); !res {
+		return cxt.JSON(http.StatusOK, errdata)
 	} else {
-		return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "INVALID_REQUEST"})
+		var nameok, codeok bool = false, false
+		var resname string
+
+		//Requested name validation check
+		if name, err := reqdata["name"].(string); !err {
+			return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "ILLEGAL_REQUEST"})
+		} else {
+			if dname, err := url.QueryUnescape(name); (err == nil) && (utf8.RuneCountInString(dname) <= 5) {
+				nameok = true
+				resname = dname
+			}
+		}
+
+		//Requsted code validation and correct check
+		if code, err := reqdata["code"]; !err {
+			return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "ILLEGAL_REQUEST"})
+		} else {
+			for _, nowcode := range allowDispAuthCode {
+				if code.(string) == nowcode {
+					codeok = true
+				}
+			}
+		}
+
+		//Assign disposable auth or Response error message
+		if codeok && nameok {
+			setSessionValue(cxt, "credential_type", "disp")
+			setSessionValue(cxt, "user_name", resname)
+			return cxt.JSON(http.StatusOK, map[string]interface{}{"status": true})
+		} else if !nameok {
+			return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "ILLEGAL_NAME"})
+		} else if !codeok {
+			return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "INCORRECT_CODE"})
+		}
 	}
-	return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "INTERNAL_SERVER_ERROR"}) //When all expected situation, code must not be reach here
+	return cxt.JSON(http.StatusInternalServerError, map[string]interface{}{"status": false, "error": "INTERNAL_SERVER_ERROR"}) //When all expected situation, code must not be reach here
 }
 
 func rCheckSession(cxt echo.Context) error {
