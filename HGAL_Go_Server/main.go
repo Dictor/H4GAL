@@ -15,8 +15,7 @@ const serverVersion string = "191117"
 
 func checkError(err error) {
 	if err != nil {
-		log.Fatal(err)
-		panic(err)
+		log.Panic(err)
 	}
 }
 
