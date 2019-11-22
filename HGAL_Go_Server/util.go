@@ -5,6 +5,7 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"io/ioutil"
 	"log"
+	"os"
 	"strings"
 )
 
@@ -56,4 +57,12 @@ func isImageFile(filename string) bool {
 		}
 	}
 	return res
+}
+
+func checkFileExist(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
 }
