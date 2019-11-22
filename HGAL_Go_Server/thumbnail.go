@@ -2,8 +2,12 @@ package main
 
 import (
 	"github.com/disintegration/imaging"
+	"hash/crc32"
+	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 func exploreDirectory(startPath string) ([]string, error) {
@@ -32,7 +36,32 @@ func makeThumbnail(sourcePath string, thumbPath string, thumbSize int) error {
 	return err
 }
 
-func makeRecursiveThumnail(startPath string) error {
-	//위 두함수 종합
-	return nil
+func makeRecursiveThumnail(startDir string, thumbDir string) (madecnt int, errcnt int, fatalerr error) {
+	files, err := exploreDirectory(startDir)
+	if err != nil {
+		return madecnt, errcnt, err
+	}
+
+	for _, nowpath := range files {
+		if isImageFile(nowpath) {
+			name, err := getThumbnailName(nowpath)
+			if err != nil {
+				log.Println("[makeRecursiveThumnail]", err)
+				errcnt++
+			} else {
+				makeThumbnail(nowpath, thumbDir+"/"+name+".jpg", 300)
+				madecnt++
+			}
+		}
+	}
+	return madecnt, errcnt, nil
+}
+
+func getThumbnailName(path string) (string, error) {
+	img, err := ioutil.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	csum := crc32.ChecksumIEEE(img)
+	return strconv.Itoa(len(img)) + "-" + strconv.FormatUint(uint64(csum), 10), nil
 }

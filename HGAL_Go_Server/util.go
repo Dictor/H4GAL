@@ -3,10 +3,8 @@ package main
 import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo-contrib/session"
-	"hash/crc32"
 	"io/ioutil"
 	"log"
-	"strconv"
 	"strings"
 )
 
@@ -47,15 +45,6 @@ func readFileLines(path string) ([]string, error) {
 		return nil, err
 	}
 	return strings.Split(string(data), "\n"), nil
-}
-
-func getThumbnailName(path string) (string, error) {
-	img, err := ioutil.ReadFile(path)
-	if err != nil {
-		return "", err
-	}
-	csum := crc32.ChecksumIEEE(img)
-	return strconv.Itoa(len(img)) + "-" + strconv.FormatUint(uint64(csum), 10), nil
 }
 
 func isImageFile(filename string) bool {

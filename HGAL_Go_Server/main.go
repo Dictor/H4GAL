@@ -25,8 +25,14 @@ func main() {
 	checkError(err)
 	allowDispAuthCode, err = readFileLines(executionPath + "/allowDispAuthCode.txt")
 	checkError(err)
+	thok, thfail, err := makeRecursiveThumnail(executionPath+"/image", executionPath+"/thumb")
+	checkError(err)
 
-	log.Println("\n------ HGAL API Server successfully initialized!!\n* Execution path :", executionPath, "\n* Version :", serverVersion)
+	log.Println("\n------ HGAL API Server successfully initialized!!\n* Execution path :",
+		executionPath, "\n* Version :",
+		serverVersion, "\n* Thumbnail made :",
+		thok, "\n* Thumbnail fail :",
+		thfail)
 
 	main_server := echo.New()
 	main_server.Use(session.Middleware(sessions.NewFilesystemStore("", []byte("<TEST SECRET!!>"))))
