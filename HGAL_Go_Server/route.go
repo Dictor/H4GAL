@@ -71,7 +71,7 @@ func rGetImageList(cxt echo.Context) error {
 		return cxt.JSON(http.StatusOK, errdata)
 	} else {
 		if val := cxt.QueryParam("dir"); val != "" {
-			nowpath := executionPath + "/image" + path.Clean(val)
+			nowpath := imagePath + path.Clean(val)
 			dirlist, err := readFileLines(nowpath + "imglist.lst")
 			if err != nil {
 				log.Println("[rGetImageList]", err)
@@ -117,7 +117,7 @@ func rGetImage(cxt echo.Context) error {
 	} else {
 		if val := cxt.QueryParam("dir"); val != "" {
 			nowpath := path.Clean(val)
-			imgdata, err := ioutil.ReadFile(executionPath + "/image" + nowpath)
+			imgdata, err := ioutil.ReadFile(imagePath + nowpath)
 			if err != nil {
 				log.Println("[rGetImage]", err)
 				return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "PATH_INVALID"})

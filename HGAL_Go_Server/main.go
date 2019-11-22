@@ -8,7 +8,7 @@ import (
 	"log"
 )
 
-var executionPath string
+var executionPath, thumbnailPath, imagePath string
 var allowDispAuthCode []string
 
 const serverVersion string = "191122"
@@ -25,11 +25,15 @@ func main() {
 	checkError(err)
 	allowDispAuthCode, err = readFileLines(executionPath + "/allowDispAuthCode.txt")
 	checkError(err)
-	thok, thfail, err := makeRecursiveThumnail(executionPath+"/image", executionPath+"/thumb")
+	thumbnailPath = executionPath + "/image"
+	imagePath = executionPath + "/thumb"
+	thok, thfail, err := makeRecursiveThumnail(thumbnailPath, imagePath)
 	checkError(err)
 
 	log.Println("\n------ HGAL API Server successfully initialized!!\n* Execution path :",
-		executionPath, "\n* Version :",
+		executionPath, "\n* Thumbnail path :",
+		thumbnailPath, "\n* Image path :",
+		imagePath, "\n* Version :",
 		serverVersion, "\n* Thumbnail made :",
 		thok, "\n* Thumbnail fail :",
 		thfail)
