@@ -40,7 +40,7 @@ var ctr_index = {
                 function(req){
                     var preq = JSON.parse(req);
                     console.log("Session : ", preq)
-                    if (preq["isNew"] == "true") {
+                    if (preq["is_new"] === true) {
                         RequestXhrGet(  
                             "http://" + window.location.hostname, 
                             "session/assign",
@@ -48,7 +48,7 @@ var ctr_index = {
                             function() {alert("알 수 없는 API 오류!")}
                         );
                     } else {
-                        location.href = "gallery.html";
+                        if (preq["status"] != "empty") location.href = "gallery.html";
                     }
                 }, 
                 function() {alert("알 수 없는 API 오류!")}
@@ -56,7 +56,7 @@ var ctr_index = {
     },
     ProcessResponce : function(reqName, reqData) {
             if (reqName == "TRYDISPAUTH"){
-                if (reqData["status"] == "true"){
+                if (reqData["status"] === true){
                     alert("자격증명을 취득했습니다.")
                     window.location.reload();
                 } else {
@@ -86,9 +86,9 @@ var ctr_index = {
             }
         },
     ConvertErrorMessage : function(msg) {
-        switch(reqData["error"]) {
+        switch(msg) {
             case "INCORRECT_CODE": return "올바르지 않은 자격증명 코드";
-            case "ILLEGAL_CREDENTIAL": return "올바르지 않은 자격증명 정보";
+            case "IMPROPER_CREDENTIAL": return "올바르지 않은 자격증명 정보";
             case "INVALID_SESSION": return "올바르지 않은 세션 정보";
             case "ALREADY_REGISTERED": return "이미 등록된 계정";
             default: return "알 수 없는 오류";
