@@ -18,11 +18,11 @@ import (
 type RequestCheckParameter int
 
 const (
-	NEED_ASSIGNED_SESSION RequestCheckParameter = 0 + 2*iota
-	NEED_UNEMPTY_CREDENTIAL
-	NEED_EMPTY_CREDENTIAL
-	NEED_POST_REQUEST_DATA
-	NEED_VALID_USER = NEED_ASSIGNED_SESSION | NEED_UNEMPTY_CREDENTIAL | NEED_POST_REQUEST_DATA
+	NEED_ASSIGNED_SESSION   RequestCheckParameter = 0
+	NEED_UNEMPTY_CREDENTIAL                       = 1
+	NEED_EMPTY_CREDENTIAL                         = 2
+	NEED_POST_REQUEST_DATA                        = 4
+	NEED_VALID_USER                               = NEED_ASSIGNED_SESSION | NEED_UNEMPTY_CREDENTIAL | NEED_POST_REQUEST_DATA
 )
 
 func checkRequest(cxt echo.Context, params RequestCheckParameter) (bool, map[string]interface{}, map[string]interface{}) {
@@ -31,7 +31,7 @@ func checkRequest(cxt echo.Context, params RequestCheckParameter) (bool, map[str
 			return false, map[string]interface{}{"status": false, "error": "INVALID_SESSION"}, nil
 		}
 	}
-	if unemcr, emcr := params&NEED_UNEMPTY_CREDENTIAL == NEED_UNEMPTY_CREDENTIAL, params&NEED_EMPTY_CREDENTIAL == NEED_EMPTY_CREDENTIAL; unemcr || emcr {
+	if unemcr, emcr := (params&NEED_UNEMPTY_CREDENTIAL == NEED_UNEMPTY_CREDENTIAL), (params&NEED_EMPTY_CREDENTIAL == NEED_EMPTY_CREDENTIAL); unemcr || emcr {
 		ctype := getSessionValue(cxt, "credential_type")
 		if ctype == "empty" && unemcr {
 			return false, map[string]interface{}{"status": false, "error": "IMPROPER_CREDENTIAL"}, nil
@@ -133,7 +133,7 @@ func rGetImage(cxt echo.Context) error {
 }
 
 func rTryDisposableAuth(cxt echo.Context) error {
-	if res, errdata, reqdata := checkRequest(cxt, NEED_ASSIGNED_SESSION|NEED_POST_REQUEST_DATA|NEED_UNEMPTY_CREDENTIAL); !res {
+	if res, errdata, reqdata := checkRequest(cxt, NEED_ASSIGNED_SESSION|NEED_POST_REQUEST_DATA|NEED_EMPTY_CREDENTIAL); !res {
 		return cxt.JSON(http.StatusOK, errdata)
 	} else {
 		var nameok, codeok bool = false, false
