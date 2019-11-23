@@ -54,7 +54,7 @@ func setRounting(e *echo.Echo) {
 	/*main_server.POST("/info")
 	main_server.POST("/auth/kakao/try")
 	main_server.GET("/auth/kakao/register")
-	main_server.GET("/thumb")*/
+	*/
 	e.GET("/", func(cxt echo.Context) error {
 		return cxt.JSON(http.StatusOK, map[string]interface{}{"name": "HGAL API Server", "version": serverVersion})
 	})
@@ -63,6 +63,7 @@ func setRounting(e *echo.Echo) {
 	e.POST("/auth/disp/try", rTryDisposableAuth)
 	e.GET("/list", rGetImageList)
 	e.GET("/image", rGetImage)
+	e.GET("/thumb", rGetThumb)
 	e.Static("/web", "../Web")
 }
 
@@ -120,6 +121,27 @@ func rGetImage(cxt echo.Context) error {
 			imgdata, err := ioutil.ReadFile(imagePath + nowpath)
 			if err != nil {
 				log.Println("[rGetImage]", err)
+				return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "PATH_INVALID"})
+			} else {
+				b64imgdata := base64.StdEncoding.EncodeToString(imgdata)
+				return cxt.JSON(http.StatusOK, map[string]interface{}{"status": true, "image": b64imgdata})
+			}
+		} else {
+			return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "ILLEGAL_REQUEST"})
+		}
+	}
+	return cxt.JSON(http.StatusInternalServerError, map[string]interface{}{"status": false, "error": "INTERNAL_SERVER_ERROR"}) //When all expected situation, code must not be reach here
+}
+
+func rGetThumb(cxt echo.Context) error {
+	if res, errdata, _ := checkRequest(cxt, NEED_ASSIGNED_SESSION|NEED_UNEMPTY_CREDENTIAL); !res {
+		return cxt.JSON(http.StatusOK, errdata)
+	} else {
+		if val := cxt.QueryParam("id"); val != "" {
+			nowid := path.Clean(val)
+			imgdata, err := ioutil.ReadFile(thumbnailPath + "/" + nowid + ".jpg")
+			if err != nil {
+				log.Println("[rGetThumb]", err)
 				return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "PATH_INVALID"})
 			} else {
 				b64imgdata := base64.StdEncoding.EncodeToString(imgdata)
