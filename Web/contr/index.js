@@ -60,7 +60,7 @@ var ctr_index = {
                     alert("자격증명을 취득했습니다.")
                     window.location.reload();
                 } else {
-                    alert("오류가 발생했습니다! (" + ctr_index.ConvertErrorMessage(reqData["error"]) + ")");
+                    alert("오류가 발생했습니다! (" + ConvertErrorMessage(reqData["error"]) + ")");
                 }
             } else if (reqName == "TRYKAKAOAUTH"){
                 if (reqData["status"]){
@@ -72,28 +72,19 @@ var ctr_index = {
                             ws.makeREQ("REGISTERKAKAOAUTH",{"sid": sid, "token": Kakao.Auth.getAccessToken(), "code": code});
                         }
                     } else {
-                        alert("오류가 발생했습니다! (" + ctr_index.ConvertErrorMessage(reqData["error"]) + ")");
+                        alert("오류가 발생했습니다! (" + ConvertErrorMessage(reqData["error"]) + ")");
                     }
                 }
             } else if (reqName == "REGISTERKAKAOAUTH"){
                 if (reqData["status"]){
                     alert("등록에 성공했습니다. 다시 카카오 로그인을 진행해주세요.")
                 } else {
-                    alert("오류가 발생했습니다! (" + ctr_index.ConvertErrorMessage(reqData["error"]) + ")");
+                    alert("오류가 발생했습니다! (" + ConvertErrorMessage(reqData["error"]) + ")");
                 }
             } else if (reqName == "SHOWALERT"){
                 alert(reqData["msg"]);
             }
         },
-    ConvertErrorMessage : function(msg) {
-        switch(msg) {
-            case "INCORRECT_CODE": return "올바르지 않은 자격증명 코드";
-            case "IMPROPER_CREDENTIAL": return "올바르지 않은 자격증명 정보";
-            case "INVALID_SESSION": return "올바르지 않은 세션 정보";
-            case "ALREADY_REGISTERED": return "이미 등록된 계정";
-            default: return "알 수 없는 오류";
-        }
-    },
     onError : function(evt) {
         $("#statusdiv-login").hide();
         $("#statusdiv-error").show();			
