@@ -4,7 +4,7 @@ var ctr_index = {
             $("#status-login").show();
             $("#status-error").hide();			
             Kakao.init('47994d851f67e522d8665d374c804817');
-            ctr_index.AssignSession();
+            ctr_index.checkSession();
         }
     },
     ShowDispAuthMenu : function () {
@@ -33,9 +33,9 @@ var ctr_index = {
             );
         }
     },
-    AssignSession : function(evt) {
+    checkSession : function(evt) {
             RequestXhrGet(  
-                "http://" + window.location.hostname, 
+                window.location.protocol + "//" + window.location.hostname, 
                 "session/check",
                 function(req){
                     var preq = JSON.parse(req);

@@ -52,6 +52,6 @@ function ConvertErrorMessage(msg) {
         case "IMPROPER_CREDENTIAL": return "올바르지 않은 자격증명 정보";
         case "INVALID_SESSION": return "올바르지 않은 세션 정보";
         case "ALREADY_REGISTERED": return "이미 등록된 계정";
-        default: return "알 수 없는 오류(" + msg + ")";
+        default: return msg;
     }
 }

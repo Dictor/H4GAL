@@ -101,26 +101,18 @@
             </div>
         </div>
         <div class="gallery-load-popup">
-            <p>불러오는중....<span id="loadpopupPerc"></span></p>
+            <p>불러오는중....</p>
         </div>
         <div class="gallery-view-popup">
-            <div class="row" id="vprow">
-                <div class="col-md-1" id="vpimgbefore">
-                    <p class="exit" onclick="$('.viewPopup').hide();">×</p>
-                </div>
-                <div class="col-md-8" id="vpimgcover">
-                    <p id="vptitle" class="title">TITLE</p>
-                    <img id="vpimg" src="./img/hamster.png">
-                </div>
-                <div class="col-md-3">
-                    <div id="vpother">
-                        <a id="vpfiledw" style="display: none;"></a>
-                        <button class="btn btn-default btn-block vpothercont" style="margin-top: 5px;" onclick="ctr_gallery.showImgPopup($('#vpimg').attr('src'))">전체화면<span id="fullscrbtn_detailexp">으로 보기</span></button>
-                        <button class="btn btn-default btn-block vpothercont" onclick="document.getElementById('vpfiledw').click()">사진 저장</button>
-                        <button class="btn btn-default btn-block vpothercont" disabled="disabled">공유</button>
-                    </div>
-                </div>
-            </div>
+            <p id="popup-title"></p>
+            <img id="popup-image">
+            <div id="popup-function"></div>
         </div>
     </body>
 </html>
+
+<!-- 
+                        <button class="btn btn-default btn-block vpothercont" style="margin-top: 5px;" onclick="ctr_gallery.showImgPopup($('#vpimg').attr('src'))">전체화면<span id="fullscrbtn_detailexp">으로 보기</span></button>
+                        <button class="btn btn-default btn-block vpothercont" onclick="document.getElementById('vpfiledw').click()">사진 저장</button>
+                        <button class="btn btn-default btn-block vpothercont" disabled="disabled">공유</button>
+-->

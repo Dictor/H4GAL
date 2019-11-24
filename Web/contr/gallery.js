@@ -1,9 +1,7 @@
 var ctr_gallery = {
     nowdir : "/",
-    gimgCount : 0,
     photoperpage : 15,
     nowimglst : {},
-    imgbase64data : {},
     imgbindlist : {},
     autothbindlist : {},
     init : function(){
@@ -11,136 +9,123 @@ var ctr_gallery = {
             $("#gallery-error-box").alert();
             $(".gallery-load-popup").hide();
             $(".gallery-view-popup").hide();
+            ctr_gallery.checkSession();
         };
     },
     ShowErrorPopup : function(detail) {
         $("#gallery-error-box-txt").text(detailtxt);
         $("gallery-error-box").show();
     },
-    showImgList : function() {
-            ws.makeREQ("GETIMGLIST", {"sid": sid, "dir": encodeURI(ctr_gallery.nowdir)});
+    showImageList : function() {
+            RequestXhrGet(  
+                window.location.protocol + "//" + window.location.hostname, 
+                "list?dir=" + ctr_gallery.nowdir,
+                function(req){
+                    var preq = JSON.parse(req);
+                    if (preq["status"]) {
+                        $('.page').bootpag({
+                            total: Math.ceil(preq["result"].length / ctr_gallery.photoperpage),
+                            page: 1,
+                            maxVisible: 10
+                        }).on('page', function(event, num){
+                            ctr_gallery.showPage(num)
+                        });
+                        ctr_gallery.nowimglst = $.extend(true, {}, preq["result"]);
+                        ctr_gallery.showPage(1)
+                    } else {
+                        alert("알 수 없는 오류! (" + ConvertErrorMessage(preq["error"]) + ")");
+                        ctr_gallery.nowdir = "/";
+                    }
+                }, 
+                function() {alert("알 수 없는 API 오류!")}
+            );
         },
     go : function(isalbum, dir) {
         if (isalbum) {
-            ctr_gallery.nowdir += dir;
+            ctr_gallery.nowdir += dir + "/";
             $(".gallery-load-popup").show();
-            ctr_gallery.showImgList();
+            ctr_gallery.showImageList();
         } else {
             $(".gallery-load-popup").show();
             ctr_gallery.imgbindlist[ctr_gallery.nowdir + dir] = "vpimg";
-            ws.makeREQ("GETIMG", {"sid": sid, "dir": encodeURI(ctr_gallery.nowdir + dir)});
+            ctr_gallery.getImage(encodeURI(ctr_gallery.nowdir + dir));
         }
     },
     bindThumbnail : function(){
-            var delfunc = function(gap) { /* gap is in millisecs */
-                var then,now;
-                then = new Date().getTime();
-                now = then;
-                while((now - then) < gap) {
-                    now = new Date().getTime();
-                }
-            };
-            for(var key in ctr_gallery.imgbindlist){
-                ws.makeREQ("GETIMG", {"sid": sid, "dir":  encodeURI(key)});
-                delfunc(50);
-            }
-            for(var key in ctr_gallery.autothbindlist){
-                ws.makeREQ("GETTHUMB", {"sid": sid, "thid": key});
-                delfunc(50);
-            }
-        },
-    onOpen : function(evt) {
-            sid = getCookie("sid");
-            if(!sid){
-                alert("유효하지 않은 세션입니다! 초기페이지로 돌아갑니다.");
-                location.href = "index.html";
-            } else {
-                ws.makeREQ("SESSION", {"sid": sid});
-            }
-        },
-    onMessage : function(reqName, reqData) {
-            if (reqName == "GETCREDENTIAL"){
-                if (reqData["isNew"] == true){
-                    alert("유효하지 않은 세션입니다! 초기페이지로 돌아갑니다.");
-                    location.href = "index.html";
-                } else {
-                    if (reqData["status"] == "empty"){
-                        alert("권한이 없습니다! 초기페이지로 돌아갑니다.");
+        for(var key in ctr_gallery.imgbindlist){
+            ctr_gallery.getImage(encodeURI(key));
+        }
+        for(var key in ctr_gallery.autothbindlist){
+            ctr_gallery.getThumbnail(key)
+        }
+    },
+    checkSession : function(evt) {
+            RequestXhrGet(  
+                window.location.protocol + "//" + window.location.hostname, 
+                "session/check",
+                function(req){
+                    var preq = JSON.parse(req);
+                    console.log("Session : ", preq)
+                    if (preq["is_new"] === true) {
+                        alert("유효하지 않은 세션입니다! 초기 페이지로 돌아갑니다.");
                         location.href = "index.html";
-                    } else if  (reqData["status"] == "disposable"){
-                        $(".gtitletxt").css("display") == "none" ? $("#txtAuthInfo").text("D" + reqData["name"]) : $("#txtAuthInfo").text("사용자 : D" + reqData["name"]);
-                        ctr_gallery.showImgList();
-                    } else if  (reqData["status"] == "kakao"){
-                        $(".gtitletxt").css("display") == "none" ? $("#txtAuthInfo").text("K" + reqData["name"]) : $("#txtAuthInfo").text("사용자 : K" + reqData["name"]);
-                        ctr_gallery.showImgList();
-                    } else if  (reqData["status"] == "account"){
-                        $(".gtitletxt").css("display") == "none" ? $("#txtAuthInfo").text(reqData["name"]) : $("#txtAuthInfo").text("사용자 : " + reqData["name"]);
-                        ctr_gallery.showImgList();
-                    }
-                }
-            } else if (reqName == "GETIMGLIST"){
-                if (reqData["status"]){
-                    $('.page').bootpag({
-                        total: Math.ceil(reqData["result"].length / ctr_gallery.photoperpage),
-                        page: 1,
-                        maxVisible: 10
-                     }).on('page', function(event, num){
-                        ctr_gallery.showpage(num)
-                     });
-                    ctr_gallery.nowimglst = $.extend(true, {}, reqData["result"]);
-                    ctr_gallery.showpage(1)
-                } else {
-                    alert("오류가 발생했습니다! (" + reqData["error"] + ")");
-                    ctr_gallery.nowdir = "/";
-                }
-            } else if (reqName == "GETIMG"){
-                if (reqData["status"]){
-                    if (reqData["task"] == "start"){
-                        ctr_gallery.imgbase64data[reqData["name"]] = new Array();
-                        ctr_gallery.gimgCount = Number(reqData["count"]);
-                    } else if (reqData["task"] == "slice"){
-                        ctr_gallery.imgbase64data[reqData["name"]][reqData["slicecount"]] = reqData["data"];
-                        $("#loadpopupPerc").text(String(Math.floor((Number(reqData["slicecount"])/ctr_gallery.gimgCount)*100)) + "%");
-                    } else if (reqData["task"] == "end"){
-                        var compbase64 = "";
-                        for(var i = 0; i < (ctr_gallery.imgbase64data[reqData["name"]]).length; i++){
-                            compbase64 += ctr_gallery.imgbase64data[reqData["name"]][i];
+                    } else {
+                        switch(preq["status"]) {
+                            case "empty": 
+                                alert("유효하지 않은 자격증명입니다! 초기 페이지로 돌아갑니다.");
+                                location.href = "index.html";
+                            case "disp":
+                                $(".gtitletxt").css("display") == "none" ? $("#txtAuthInfo").text("D" + preq["name"]) : $("#txtAuthInfo").text("사용자 : D" + preq["name"]);
+                                ctr_gallery.showImageList();
+                                break;
                         }
-                        $("#" + ctr_gallery.imgbindlist[reqData["name"]]).attr("src",window.URL.createObjectURL(b64toBlob(compbase64, "data:image")));
-                        if (ctr_gallery.imgbindlist[reqData["name"]] == "vpimg"){
-                            $(".loadPopup").hide();
-                            $("#vptitle").text(reqData["name"].split("/").slice(-1).pop());
-                            $(".viewPopup").show();
-                            $("#vpfiledw").attr("href", $('#vpimg').attr('src'));
-                            $("#vpfiledw").attr("download", $("#vptitle").text());
+                    }
+                }, 
+                function() {alert("알 수 없는 API 오류!")}
+            );
+    },    
+    getImage : function (dir) {
+        RequestXhrGet(  
+            window.location.protocol + "//" + window.location.hostname, 
+            "image?dir=" + dir,
+            function(req){
+                var preq = JSON.parse(req);
+                if (preq["status"]) {
+                    $("#popup-image").attr("src",window.URL.createObjectURL(b64toBlob(preq["image"], "data:image")));
+                    if (ctr_gallery.imgbindlist[dir] == "vpimg"){
+                        $(".gallery-load-popup").hide();
+                        $("#image-title").text(dir.split("/").slice(-1).pop());
+                        $(".gallery-view-popup").show();
+                        $("#vpfiledw").attr("href", $('#vpimg').attr('src'));
+                        $("#vpfiledw").attr("download", $("#image-title").text());
+                        ctr_gallery.resizevpimg();
+                        $(window).resize(function(){
                             ctr_gallery.resizevpimg();
-                            $(window).resize(function(){
-                                ctr_gallery.resizevpimg();
-                            });
-                        }
+                        });
                     }
                 } else {
-                    alert("오류가 발생했습니다! (" + reqData["error"] + ")");
+                    console.error("Fail to get image :", preq)
                 }
-            } else if (reqName == "GETTHUMB"){
-                if (reqData["status"]){
-                    if (reqData["task"] == "start"){
-                        ctr_gallery.imgbase64data[reqData["name"]] = new Array();
-                    } else if (reqData["task"] == "slice"){
-                        ctr_gallery.imgbase64data[reqData["name"]][reqData["slicecount"]] = reqData["data"];
-                    } else if (reqData["task"] == "end"){
-                        var compbase64 = "";
-                        for(var i = 0; i < (ctr_gallery.imgbase64data[reqData["name"]]).length; i++){
-                            compbase64 += ctr_gallery.imgbase64data[reqData["name"]][i];
-                        }
-                        $("#" + ctr_gallery.autothbindlist[reqData["name"]]).attr("src",window.URL.createObjectURL(b64toBlob(compbase64, "data:image")));
-                    }
+            }, 
+            function() {alert("알 수 없는 API 오류!")}
+        );
+    },
+    getThumbnail : function (id) {
+        RequestXhrGet(  
+            window.location.protocol + "//" + window.location.hostname, 
+            "thumb?id=" + id,
+            function(req){
+                var preq = JSON.parse(req);
+                if (preq["status"]) {
+                    $("#" + ctr_gallery.autothbindlist[id]).attr("src",window.URL.createObjectURL(b64toBlob(preq["image"], "data:image")));
                 } else {
-                    alert("오류가 발생했습니다! (" + reqData["error"] + ")");
+                    console.error("Fail to get thumbnail :", preq)
                 }
-            }
-        },
-    showpage : function(pagenum) {
+            }, 
+            function() {alert("알 수 없는 API 오류!")}
+        );
+    },
+    showPage : function(pagenum) {
         $(".loadPopup").show();
         var htmlstring = '<div class="row imgdiv">';
         ctr_gallery.autothbindlist = {};
@@ -166,11 +151,11 @@ var ctr_gallery = {
         $(".loadPopup").hide();
     },
     resizevpimg : function() {
-        var picdispW = $("#vpimgcover").width();
+        var picdispW = $("#image-cover").width();
         var picdispH = $("#vprow").height();
         if(picdispW >= picdispH){
             var calch = 0;
-            if($("#vpimgcover").css("float") == "left"){                
+            if($("#image-cover").css("float") == "left"){                
                 calch = picdispH - ($("#vptitle").outerHeight(true));
             } else {
                 calch = picdispH - ($("#vpimgbefore").outerHeight(true) + $("#vptitle").outerHeight(true) + $("#vpother").outerHeight(true));
@@ -181,14 +166,14 @@ var ctr_gallery = {
                 $("#vpimg").outerWidth(picdispW);
                 $("#vpimg").height("auto");
             }
-            $("#vpimgcover").height($("#vpimg").outerHeight(true) + $("#vptitle").outerHeight(true));
+            $("#image-cover").height($("#vpimg").outerHeight(true) + $("#vptitle").outerHeight(true));
         } else {
             $("#vpimg").outerWidth(picdispW);
             $("#vpimg").height("auto");
-            $("#vpimgcover").height($("#vpimg").outerHeight(true) + $("#vptitle").outerHeight(true));
+            $("#image-cover").height($("#vpimg").outerHeight(true) + $("#vptitle").outerHeight(true));
         }
         
-        if($("#vpimgcover").css("float") == "left"){
+        if($("#image-cover").css("float") == "left"){
             $(".vpothercont").addClass("vpother_vert");
             $(".vpothercont").removeClass("vpother_horz");
         } else {
@@ -199,11 +184,5 @@ var ctr_gallery = {
     showImgPopup : function(url) {
         var imgWindow = window.open("", "하늘고 4기 사진창고");
 		imgWindow.document.write("<img src='" + url + "'>");
-    },
-    onError : function(evt) {
-            ctr_gallery.showErr("서버와 연결중 오류가 발생했습니다! 페이지를 새로고쳐 재시도 하세요.");
-        },
-    onClose : function(evt) {
-            ctr_gallery.showErr("서버와 연결중 오류가 발생했습니다! 페이지를 새로고쳐 재시도 하세요."); 
-        }
+    }
 }

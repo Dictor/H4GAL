@@ -28,16 +28,15 @@ body {font-family: 'Nanum Gothic', sans-serif !important; background-color : #ff
 .imgdiv .thtitle{margin-bottom: 2px; font-weight: bold; font-size: 1.3em;}
 .imgdiv .thdetail{margin-bottom: 5px;}
 
-.loadPopup{display: inline-block; position: fixed; top: calc(50% - 20px); left: calc(50% - 90px); width: 180px; height: 40px; background-color: white; border: gray 1px solid; border-radius: 10%; padding-top: 7px;}
-.loadPopup p{text-align: center; font-weight: bold; font-size: 1.2em;}
+.gallery-load-popup{display: inline-block; position: fixed; top: calc(50% - 20px); left: calc(50% - 90px); width: 180px; height: 40px; background-color: white; border: gray 1px solid; border-radius: 10%; padding-top: 7px;}
+.gallery-load-popup p{text-align: center; font-weight: bold; font-size: 1.2em;}
 
-.viewPopup{display: inline-block; position: fixed; top: 5%; left: 5%; width: 90%; height: 90%; background-color: white; border: gray 1px solid; border-radius: 10px; padding: 15px 0px;}
-.viewPopup #vprow{height: 100%; width: 100%; box-sizing: border-box; margin: 0px;}
-.viewPopup #vpimgcover{height: 100%;}
-.viewPopup #vpimg{margin: 0;}
-.viewPopup #vpimginfo{width: 100%;}
-.viewPopup .title{font-size: 1.7em; font-weight: bold;}
-.viewPopup .desc{display: none;}
-.viewPopup .exit{font-size: 1.5em; font-weight: bold; color: red; margin-left: 10px; margin-bottom: 0;}
+.gallery-view-popup{display: inline-block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: dimgray; opacity: 0.7;}
+.gallery-view-popup #image-cover{height: 100%;}
+.gallery-view-popup #vpimg{margin: 0;}
+.gallery-view-popup #vpimginfo{width: 100%;}
+.gallery-view-popup #image-title{font-size: 1.7em; font-weight: bold;}
+.gallery-view-popup .desc{display: none;}
+.gallery-view-popup .exit{font-size: 1.5em; font-weight: bold; color: red; margin-left: 10px; margin-bottom: 0;}
 .vpother_vert{display: block; width: 100%;}
 .vpother_horz{display: inline-block; width: 25%;}
