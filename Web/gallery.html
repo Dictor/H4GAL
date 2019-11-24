@@ -1,118 +1,39 @@
-<!DOCTYPE html> 
+<!doctype html>
 <html lang="ko">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device=width, initial-scale=1">
         
-        <!--jQuery-->
-        <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
-          integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8="
-          crossorigin="anonymous"></script>
-        <script type="text/javascript" src="http://botmonster.com/jquery-bootpag/jquery.bootpag.js"></script>
-
         <!--Bootstrap-->
-        <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
-        <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
-        <script src="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
-
-        <!--Kakao Auth-->
-        <script src="//developers.kakao.com/sdk/js/kakao.min.js"></script>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
         <!--Custom Stylesheets-->
-        <link rel="stylesheet" href="style/common_style.css">
-        <link rel = "stylesheet" href = "style/xsmall_style.css" media = "(max-width:768px)"/>
+        <link rel="stylesheet" href="style/standard.css">
+        
+        <!--Font and icons-->
+        <link href="https://fonts.googleapis.com/earlyaccess/nanumgothic.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/simple-line-icons/2.4.1/css/simple-line-icons.css" />        
         
         <!--Custom script and controller-->
         <script src="lib/util.js"></script>
-        <script src="contr/gallery.js"></script>   
-            
-        <title>하늘고 4기 사진 저장소</title>
+        <script src="lib/app.js"></script>
+        
+        <title>H4GAL</title>
     </head>
-    <body>
-        <script>
-            ctr_gallery.init();
-        </script>
+    <body onload="">
+        <nav class="navbar navbar-dark bg-dark">
+            <span class="navbar-brand mb-0 h1">H4GAL</span>
+            <span id="gallery-navbar-userinfo"><span class="service-icon"><i class="icon-user"></i></span> User</span>
+        </nav>
         <div class="container-fluid">
-            <div class="row-fluid menudiv" style="vertical-align: middle; padding-top: 10px; padding-left: 10px;">
-                <div class="col-md-1">
-                    <a href="gallery.html"><img src="./img/logo.png" style="width: 100%; max-width: 85px; max-height: 58px;"></a>
-                </div>
-                <div class="col-md-3" style="padding-left: 0px;">
-                    <p class="text gtitletxt" style="font-size: 1.3em; font-weight: bold;">하늘고 4기 남학생 사진창고</p>
-                </div>
-                <div class="col-md-5"></div>
-                <div class="col-md-3">
-                    <p id="txtAuthInfo" class="text" style="font-size: 1em; text-align: right;"></p>
-                </div>
-            </div>
-            <div id="gallery-error-box" class="alert alert-danger alert-dismissible fade in" role="alert" style="display: none; width: 95%; margin: auto; margin-top: 10px;">
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <strong style="font-size: 1.5em;">오류가 발생했습니다!</strong><br><p id="gallery-error-box-txt">Error Detail</p>
-            </div>
             <div class="row-fluid">
-                <div class="centering text-center">
-                    <nav>
-                        <ul class="pagination">
-                            <li class="page">
-                            </li>
-                        </ul>
-                    </nav>   
-                    <div id="imgdata" class="container-fluid" style="width:90%">                   
-                        <!--
-                        <div class="row imgdiv">
-                            <div class="col-md-4">
-                                <a href="#" class="thumbnail">
-                                    <img src="./img/hamster.png">
-                                    <div class="caption">
-                                        <p class="thtitle">Title</p>
-                                        <p class="thdetail">Detail</p>
-                                    </div>
-                                </a>
-                            </div>
-                            <div class="col-md-4">
-                                <a href="#" class="thumbnail">
-                                    <img src="./img/hamster.png">
-                                    <div class="caption">
-                                        <p class="thtitle">Title</p>
-                                        <p class="thdetail">Detail</p>
-                                    </div>
-                                </a>
-                            </div>
-                            <div class="col-md-4">
-                                <a href="#" class="thumbnail">
-                                    <img src="./img/hamster.png">
-                                    <div class="caption">
-                                        <p class="thtitle">Title</p>
-                                        <p class="thdetail">Detail</p>
-                                    </div>
-                                </a>
-                            </div>
-                        </div>
-                        -->
-                    </div>
-                    <nav>
-                        <ul class="pagination">
-                            <li class="page">
-                            </li>
-                        </ul>
-                    </nav>   
-                    <br><p class="text" style="font-size:1em; color:gray;"> &copy; 김정현(kimdictor@gmail.com) 2018</p>
-                </div>
+                <nav><ul class="pagination"><li class="page"></li></ul></nav> 
+                <div id="gallery-image-result"></div>
+                <nav><ul class="pagination"><li class="page"></li></ul></nav>  
             </div>
-        </div>
-        <div class="gallery-load-popup">
-            <p>불러오는중....</p>
-        </div>
-        <div class="gallery-view-popup">
-            <p id="popup-title"></p>
-            <img id="popup-image">
-            <div id="popup-function"></div>
         </div>
     </body>
 </html>
-
-<!-- 
-                        <button class="btn btn-default btn-block vpothercont" style="margin-top: 5px;" onclick="ctr_gallery.showImgPopup($('#vpimg').attr('src'))">전체화면<span id="fullscrbtn_detailexp">으로 보기</span></button>
-                        <button class="btn btn-default btn-block vpothercont" onclick="document.getElementById('vpfiledw').click()">사진 저장</button>
-                        <button class="btn btn-default btn-block vpothercont" disabled="disabled">공유</button>
--->

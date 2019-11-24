@@ -60,3 +60,7 @@ body {
 #index-login-disp .td-padding {
     padding-right: 7px;
 }
+
+#gallery-navbar-userinfo {
+    color: white;
+}
