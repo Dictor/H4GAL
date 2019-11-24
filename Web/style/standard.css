@@ -21,7 +21,7 @@ body {
     width: 180px;
 }
 
-.index-info > h3 {
+.index-info > h3 h5 {
     text-align: center;
     font-weight: bold;
     margin: 0;
