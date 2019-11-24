@@ -56,12 +56,6 @@ var ctr_index = {
     },
     ProcessResponce : function(reqName, reqData) {
             if (reqName == "TRYDISPAUTH"){
-                if (reqData["status"] === true){
-                    alert("자격증명을 취득했습니다.")
-                    window.location.reload();
-                } else {
-                    alert("오류가 발생했습니다! (" + ConvertErrorMessage(reqData["error"]) + ")");
-                }
             } else if (reqName == "TRYKAKAOAUTH"){
                 if (reqData["status"]){
                     window.location.reload();

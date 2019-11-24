@@ -19,10 +19,11 @@
         
         <!--Custom script and controller-->
         <script src="lib/util.js"></script>
+        <script src="lib/app.js"></script>
         
         <title>H4GAL</title>
     </head>
-    <body>
+    <body onload="javascript:ctr_index.checkSession()">
         <div class="index-info">
             <img src="img/logo.png">
             <h3>하늘고 4기 사진창고</h3>
@@ -30,15 +31,24 @@
         </div>
         <div class="index-login">
             <div id="index-login-select">
-                <button type="button" class="btn btn-primary btn-block" onclick="">
+                <button type="button" class="btn btn-primary btn-block" onclick="" disabled>
                     <span class="service-icon"><i class="icon-social-facebook"></i></span>
                     <span>페이스북</span>
                 </button>
-                <button type="button" class="btn btn-warning btn-block" onclick="">
+                <button type="button" class="btn btn-warning btn-block" onclick="javascript:ctr_index.showDispMenu()">
                     <span class="service-icon"><i class="icon-key"></i></span>
                     <span>자격증명 코드</span>
                 </button>
             </div>
+            <table id="index-login-disp">
+				<tr>
+					<td class="td-padding"><input id="index-login-disp-code" class="form-control" type="password" placeholder="자격증명 코드" tabindex="1"></td>
+					<td rowspan=2><button class="btn btn-primary" tabindex="3" onclick="javascript:ctr_index.requestDispAuth()">로그인</button></td>
+				</tr>
+				<tr>
+					<td class="td-padding"><input id="index-login-disp-name" class="form-control" type="text" placeholder="이름" tabindex="2"><td>
+				</tr>
+			</table>
         </div>
     </body>
 </html>

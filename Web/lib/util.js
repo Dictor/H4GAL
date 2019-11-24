@@ -1,3 +1,5 @@
+var global_host = window.location.protocol + "//" + window.location.hostname;
+
 function b64toBlob(b64Data, contentType, sliceSize) {
     contentType = contentType || '';
     sliceSize = sliceSize || 512;
@@ -21,9 +23,10 @@ function b64toBlob(b64Data, contentType, sliceSize) {
   var blob = new Blob(byteArrays, {type: contentType});
   return blob;
 }
-function RequestXhrGet(host, verb, okcb, errorcb) {
+
+function RequestXhrGet(verb, okcb, errorcb) {
     var req = new XMLHttpRequest();
-    req.open("GET", host + "/" + verb, true);
+    req.open("GET", global_host + "/" + verb, true);
     req.onload = function() {
         if (req.status == 200) {
             okcb(req.response);
@@ -33,9 +36,10 @@ function RequestXhrGet(host, verb, okcb, errorcb) {
     };
     req.send();
 }
-function RequestXhrPost(host, verb, param, okcb, errorcb) {
+
+function RequestXhrPost(verb, param, okcb, errorcb) {
     var req = new XMLHttpRequest();
-    req.open("POST", host + "/" + verb, true);
+    req.open("POST", global_host + "/" + verb, true);
     req.setRequestHeader('Content-Type', 'application/json');
     req.onload = function() {
         if (req.status == 200) {

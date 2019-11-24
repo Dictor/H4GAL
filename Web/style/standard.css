@@ -36,19 +36,27 @@ body {
 
 .index-login {
     position: absolute;
-    top: calc(50% - 10px);
+    top: calc(50% - 20px);
     left: calc(50% - 100px);
     width: 200px;
-    height: 120px;
+    height: 100px;
     background-color: dimgray;
     border-radius: 5%;
     padding: 5px;
 }
 
 #index-login-select > button {
-    height: 50px;
+    height: 40px;
 }
 
 #index-login-select span {
     font-size: 1.2rem;
+}
+
+#index-login-disp {
+    display: none;
+}
+
+#index-login-disp .td-padding {
+    padding-right: 7px;
 }
