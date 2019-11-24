@@ -1,103 +1,43 @@
-<!DOCTYPE html> 
+<!doctype html>
 <html lang="ko">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device=width, initial-scale=1">
         
-        <!--jQuery-->
-        <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
-          integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8="
-          crossorigin="anonymous"></script>
-
         <!--Bootstrap-->
-        <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
-        <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
-        <script src="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
-
-        <!--Kakao Auth-->
-        <script src="//developers.kakao.com/sdk/js/kakao.min.js"></script>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
         <!--Custom Stylesheets-->
-        <link rel="stylesheet" href="style/common_style.css">
-        <link rel = "stylesheet" href = "style/xsmall_style.css" media = "(max-width:768px)"/>
+        <link rel="stylesheet" href="style/standard.css">
+        
+        <!--Font and icons-->
+        <link href="https://fonts.googleapis.com/earlyaccess/nanumgothic.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/simple-line-icons/2.4.1/css/simple-line-icons.css" />        
         
         <!--Custom script and controller-->
         <script src="lib/util.js"></script>
-        <script src="contr/index.js"></script>    
         
-        <title>하늘고 4기 남학생 사진창고</title>
+        <title>H4GAL</title>
     </head>
     <body>
-        <script>
-            ctr_index.Init();
-        </script>
-        <div class="container-fluid">
-            <div class="row-fluid index-row-fluid">
-                <div class="centering text-center">
-                    <div class="container-fluid"  style="width:90%">
-                        <img src="./img/logo.png" style="width: 25%; max-width: 601px;">
-                        <br><br>
-                        
-                        <div class="row">
-                            <div class="col-md-12">
-                                <p class="titletxt" style="font-size:5em; font-weight:bold;">하늘고 4기 남학생 사진창고</p>
-                            </div>
-                        </div>
-
-                        <a href="http://wiki.chinchister.com/%ED%95%98%EB%8A%98%EA%B3%A0_4_%EA%B8%B0_%EC%82%AC%EC%A7%84%EC%B0%BD%EA%B3%A0"><p class="text" ><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>소개 & 문의</p></a>
-                        <p><span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>계정은 없지만, 하늘고 4기 학생이라면 <font style="font-weight:bold;">'일회용 자격증명'</font> 버튼을 사용하세요.</p>
-        
-                        <div class="row" >
-                            <div class="col-md-2"></div>
-                            <div class="col-md-8">
-                                <div class="panel panel-default">
-                                    <div class="panel-body">
-                                        <div id="status-error">
-                                            <p style="font-size:1em; font-weight:bold; color:red">
-                                            <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-                                            서버에 통신 중 오류가 발생했습니다! 페이지를 새로고쳐 연결을 재시도하세요.</p>
-                                        </div>
-                                        <div id="status-login">
-                                            <table id="login-menu" style="width:100%">
-                                                <tr style="vertical-align:top">
-                                                    <td style="width:50%; border-right:1px solid gray;">
-                                                        <button type="button" id="index-kakao-btn" class="btn btn-primary btn-lg" onclick="ctr_index.RequestKakaoAuth();">
-                                                            <img src="img/kakaolink_btn_medium.png">
-                                                            <p>카카오 로그인</p>
-                                                        </button>
-                                                    </td>
-                                                    <td style="width:50%;">
-                                                        <button type="button" id="dispauth_login_wrapbtn" class="btn btn-warning btn-lg" style="width:90%; height:90%;" onclick="ctr_index.ShowDispAuthMenu();">
-                                                            <p>일회용 자격증명</p>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                            <div id="login-disp" style="width:100%; display: none;">
-                                                <div style="width: 70%; height: 65px; display: inline-block; float: left;">
-                                                    <div class="input-group input-group-sm">
-                                                        <span class="input-group-addon">자격증명 코드</span>
-                                                        <input id="txtAuthCode" type="text" class="form-control">
-                                                    </div>
-                                                    <div style="margin-top: 5px; width: 100%;" class="input-group input-group-sm">
-                                                        <span class="input-group-addon">이름</span>
-                                                        <input id="txtName" type="text" class="form-control">
-                                                    </div>	
-                                                </div>
-                                                <div style="width: 30%; height: 65px; display: inline-block; padding-left: 5px;">
-                                                    <button type="button" style="width: 100%; height: 100%;" class="btn btn-primary" onclick="ctr_index.RequestDispAuth();">로그인</button>
-                                                </div>
-                                                <p id="index-abuse-warn">※고의적으로 잘못된 정보를 사용해 접속할 경우, 해당 사용자를 차단 조치할 수 있습니다</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-2"></div>
-                        </div>
-                        <br><p style="font-size:1em; color:gray;"> &copy; 김정현(kimdictor@gmail.com) 2019</p>
-                    </div>
-                </div>
+        <div class="index-info">
+            <img src="img/logo.png">
+            <h3>하늘고 4기 사진창고</h3>
+            <a href="http://wiki.chinchister.com/하늘고_4_기_사진창고"><span class="service-icon"><i class="icon-info"></i></span>소개 & 문의</a>
+        </div>
+        <div class="index-login">
+            <div id="index-login-select">
+                <button type="button" class="btn btn-primary btn-block" onclick="">
+                    <span class="service-icon"><i class="icon-social-facebook"></i></span>
+                    <span>페이스북</span>
+                </button>
+                <button type="button" class="btn btn-warning btn-block" onclick="">
+                    <span class="service-icon"><i class="icon-key"></i></span>
+                    <span>자격증명 코드</span>
+                </button>
             </div>
         </div>
     </body>
