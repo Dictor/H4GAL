@@ -64,3 +64,27 @@ body {
 #gallery-navbar-userinfo {
     color: white;
 }
+
+#gallery-image-result {
+    display: inline-flex;
+    flex-direction: row;
+    justify-content: space-around;
+    width: 100%;
+}
+
+#gallery-image-result .card {
+    width: 280px;
+}
+
+#gallery-image-result .card-text {
+    text-align: center;
+}
+
+#gallery-image-result .card-title {
+    margin-bottom: 5px;
+}
+
+#gallery-image-result .card-body {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
