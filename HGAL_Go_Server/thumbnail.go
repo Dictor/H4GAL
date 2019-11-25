@@ -31,7 +31,7 @@ func makeThumbnail(sourcePath string, thumbPath string, thumbSize int) error {
 	if err != nil {
 		return err
 	}
-	img = imaging.Fill(img, thumbSize, thumbSize, imaging.Center, imaging.Lanczos)
+	img = imaging.Fill(img, thumbSize, int(float32(thumbSize)*0.76), imaging.Center, imaging.Lanczos)
 	err = imaging.Save(img, thumbPath)
 	return err
 }

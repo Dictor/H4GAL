@@ -11,7 +11,7 @@ import (
 var executionPath, thumbnailPath, imagePath string
 var allowDispAuthCode []string
 
-const serverVersion string = "191123"
+const serverVersion string = "191125"
 
 func checkError(err error) {
 	if err != nil {
