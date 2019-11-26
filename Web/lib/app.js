@@ -45,16 +45,12 @@ var ctr_index = {
 var ctr_gallery = {
     currentPath : "/",
     currentImageResult: {},
-    currentThumbnail: {},
     CONST_IMAGE_PER_PAGE: 15,
     showInit : function() {
         ctr_gallery.getPage(1); 
         ctr_gallery.showPage(1);
     },
     getPage : function(page_num) {
-        /*ctr_gallery.currentImageResult = {};
-        ctr_gallery.currentThumbnail = {};
-        */
         var preq = JSON.parse(RequestXhrGetSync("list?dir=" + ctr_gallery.currentPath));
         if (preq["status"]) {
             ctr_gallery.currentImageResult = preq["result"];
@@ -79,16 +75,6 @@ var ctr_gallery = {
         for (var i = 1; i <= total_page; i++) {
             document.getElementsByClassName("gallery-pagination").innerHTML += 
                 '<li class="page-item"><a class="page-link" href="javascript:ctr_gallery.showPage(' + i + ')">' + i + '</a></li>'
-        }
-    },
-    getAllThumbnail : function(complete_callback) {
-        for (var i = 0; i < ctr_gallery.currentImageResult.length; i++) {
-           if (ctr_gallery.currentImageResult[i]["thimg"] != "NONE") {
-                ctr_gallery.currentThumbnail[ctr_gallery.currentImageResult[i]["thimg"]] = 
-                    ctr_gallery.makeThumbnailBlob(ctr_gallery.currentImageResult[i]["thimg"]);
-            } else {
-                now_thumb_src = "img/hamster.png";
-            }   
         }
     },
     goTo : function(is_album, dir) {
