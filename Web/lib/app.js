@@ -65,7 +65,6 @@ var ctr_gallery = {
     },
     showPage : function(page_num) { //1 부터 시작
         document.getElementById("gallery-image-result").innerHTML = "";
-        console.log(ctr_gallery.currentImageResult.length);
         for(var i = (page_num - 1) * ctr_gallery.CONST_IMAGE_PER_PAGE; i < page_num * ctr_gallery.CONST_IMAGE_PER_PAGE; i++) {
             if (i >= ctr_gallery.currentImageResult.length) break;
             var current_th = ctr_gallery.currentImageResult[i]["thimg"] == "NONE" ? "img/hamster.png" : ctr_gallery.makeThumbnailBlob(ctr_gallery.currentImageResult[i]["thimg"]);
