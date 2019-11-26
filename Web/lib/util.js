@@ -37,6 +37,17 @@ function RequestXhrGet(verb, okcb, errorcb) {
     req.send();
 }
 
+function RequestXhrGetSync(verb) {
+    var req = new XMLHttpRequest();
+    req.open("GET", global_host + "/" + verb, false);
+    req.send();
+    if (req.status == 200) {
+        return req.response;
+    } else {
+        return null;
+    }
+}
+
 function RequestXhrPost(verb, param, okcb, errorcb) {
     var req = new XMLHttpRequest();
     req.open("POST", global_host + "/" + verb, true);

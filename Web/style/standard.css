@@ -68,12 +68,14 @@ body {
 #gallery-image-result {
     display: inline-flex;
     flex-direction: row;
+    flex-wrap : wrap;
     justify-content: space-around;
     width: 100%;
 }
 
 #gallery-image-result .card {
     width: 280px;
+    margin: 0px 10px 10px 10px;
 }
 
 #gallery-image-result .card-text {

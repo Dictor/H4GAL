@@ -48,23 +48,33 @@ var ctr_gallery = {
     currentThumbnail: {},
     CONST_IMAGE_PER_PAGE: 15,
     showInit : function() {
-        ctr_gallery.getPageInfo(1); 
+        ctr_gallery.getPage(1); 
+        ctr_gallery.showPage(1);
     },
-    getPageInfo : function(page_num) {
-        RequestXhrGet(  
-            "list?dir=" + ctr_gallery.currentPath,
-            function(req){
-                var preq = JSON.parse(req);
-                if (preq["status"]) {
-                    ctr_gallery.currentImageResult = preq["result"];
-                    ctr_gallery.getAllThumbnail(function() {ctr_gallery.showImage(page_num);}); 
-                } else {
-                    alert("알 수 없는 오류! (" + ConvertErrorMessage(preq["error"]) + ")");
-                    ctr_gallery.currentPath = "/";
-                }
-            }, 
-            function() {alert("알 수 없는 API 오류!")}
-        );
+    getPage : function(page_num) {
+        /*ctr_gallery.currentImageResult = {};
+        ctr_gallery.currentThumbnail = {};
+        */
+        var preq = JSON.parse(RequestXhrGetSync("list?dir=" + ctr_gallery.currentPath));
+        if (preq["status"]) {
+            ctr_gallery.currentImageResult = preq["result"];
+        } else {
+            alert("알 수 없는 오류! (" + ConvertErrorMessage(preq["error"]) + ")");
+            ctr_gallery.currentPath = "/";
+        }
+    },
+    showPage : function(page_num) { //1 부터 시작
+        document.getElementById("gallery-image-result").innerHTML = "";
+        console.log(ctr_gallery.currentImageResult.length);
+        for(var i = (page_num - 1) * ctr_gallery.CONST_IMAGE_PER_PAGE; i < page_num * ctr_gallery.CONST_IMAGE_PER_PAGE; i++) {
+            if (i >= ctr_gallery.currentImageResult.length) break;
+            var current_th = ctr_gallery.currentImageResult[i]["thimg"] == "NONE" ? "img/hamster.png" : ctr_gallery.makeThumbnailBlob(ctr_gallery.currentImageResult[i]["thimg"]);
+            var is_album = ctr_gallery.currentImageResult[i]["type"] == "ALBUM" ? "true" : "false";
+            document.getElementById("gallery-image-result").innerHTML +=
+                '<div class="card" onclick="javascript:ctr_gallery.goTo(' + is_album + ",'" + ctr_gallery.currentImageResult[i]["dir"] + '\')"><img src="' + current_th + 
+                '" class="card-img-top"><div class="card-body"><h5 class="card-title">' + ctr_gallery.currentImageResult[i]["title"] +
+                '</h5><p class="card-text">' + ctr_gallery.currentImageResult[i]["detail"] + '</p></div>';
+        }
     },
     showPagination: function(total_page, current_page) {
         for (var i = 1; i <= total_page; i++) {
@@ -75,54 +85,38 @@ var ctr_gallery = {
     getAllThumbnail : function(complete_callback) {
         for (var i = 0; i < ctr_gallery.currentImageResult.length; i++) {
            if (ctr_gallery.currentImageResult[i]["thimg"] != "NONE") {
-                ctr_gallery.getThumbnail(
-                    ctr_gallery.currentImageResult[i]["thimg"], 
-                    function (id, data) {
-                        ctr_gallery.currentThumbnail[id] = data;
-                        if(i  == ctr_gallery.currentImageResult.length) complete_callback();
-                    }
-                );
+                ctr_gallery.currentThumbnail[ctr_gallery.currentImageResult[i]["thimg"]] = 
+                    ctr_gallery.makeThumbnailBlob(ctr_gallery.currentImageResult[i]["thimg"]);
             } else {
                 now_thumb_src = "img/hamster.png";
             }   
         }
     },
-    showImage : function(page_num) { //1 부터 시작
-        for(var i = (page_num - 1) * ctr_gallery.CONST_IMAGE_PER_PAGE; i < page_num * ctr_gallery.CONST_IMAGE_PER_PAGE; i++) {
-            if (i >= ctr_gallery.currentImageResult.length) break;
-            var current_th = ctr_gallery.currentImageResult[i]["thimg"] == "NONE" ? "img/hamster.png" : ctr_gallery.currentThumbnail[ctr_gallery.currentImageResult[i]["thimg"]];
-            document.getElementById("gallery-image-result").innerHTML +=
-                '<div class="card"><img src="' + current_th + 
-                '" class="card-img-top"><div class="card-body"><h5 class="card-title">' + ctr_gallery.currentImageResult[i]["title"] +
-                '</h5><p class="card-text">' + ctr_gallery.currentImageResult[i]["detail"] + '</p></div>';
+    goTo : function(is_album, dir) {
+        if (is_album) {
+            ctr_gallery.currentPath += dir;
+            ctr_gallery.getPage(1);
+            ctr_gallery.showPage(1);
+        } else {
+            
         }
     },
-    getImage : function (dir) {
-        RequestXhrGet(  
-            "image?dir=" + dir,
-            function(req){
-                var preq = JSON.parse(req);
-                if (preq["status"]) {
-                    return window.URL.createObjectURL(b64toBlob(preq["image"], "data:image"));
-                } else {
-                    console.error("Fail to get image :", preq)
-                }
-            }, 
-            function() {alert("알 수 없는 API 오류!")}
-        );
+    makeImageBlob : function (dir) {
+        var preq = JSON.parse(RequestXhrGetSync("image?dir=" + dir));
+        if (preq["status"]) {
+            return window.URL.createObjectURL(b64toBlob(preq["image"], "data:image"));
+        } else {
+            console.error("Fail to get image :", preq)
+            return null;
+        }
     },
-    getThumbnail : function (id, return_callback) {
-        RequestXhrGet(  
-            "thumb?id=" + id,
-            function(req){
-                var preq = JSON.parse(req);
-                if (preq["status"]) {
-                    return_callback(id, window.URL.createObjectURL(b64toBlob(preq["image"], "data:image")));
-                } else {
-                    console.error("Fail to get thumbnail :", preq)
-                }
-            }, 
-            function() {alert("알 수 없는 API 오류!")}
-        );
+    makeThumbnailBlob : function (id) {
+        var preq = JSON.parse(RequestXhrGetSync("thumb?id=" + id));
+        if (preq["status"]) {
+            return window.URL.createObjectURL(b64toBlob(preq["image"], "data:image"));
+        } else {
+            console.error("Fail to get thumbnail :", preq);
+            return null;
+        }
     }
 }
