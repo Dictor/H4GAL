@@ -90,3 +90,7 @@ body {
     padding-top: 5px;
     padding-bottom: 5px;
 }
+
+.gallery-pagination {
+    margin: 10px 0px;
+}

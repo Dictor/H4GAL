@@ -47,8 +47,18 @@ var ctr_gallery = {
     currentImageResult: {},
     CONST_IMAGE_PER_PAGE: 15,
     processPage : async function(page_num) {
+        await ctr_gallery.checkSession();
         await ctr_gallery.getPage(page_num); 
         await ctr_gallery.showPage(page_num);
+        ctr_gallery.showPagination(Math.ceil(ctr_gallery.currentImageResult.length / ctr_gallery.CONST_IMAGE_PER_PAGE), page_num);
+    },
+    checkSession : async function() {
+        var preq = JSON.parse(await RequestXhrGetPromise("session/check"));
+        if (preq["is_new"] ||  preq["status"] == "empty") {
+            alert("권한이 없습니다! 메인 페이지로 돌아갑니다.");
+        } else {
+            document.getElementById("gallery-navbar-username").innerHTML = preq["name"];
+        }
     },
     getPage : async function(page_num) {
         var preq = JSON.parse(await RequestXhrGetPromise("list?dir=" + ctr_gallery.currentPath));
@@ -72,9 +82,13 @@ var ctr_gallery = {
         }
     },
     showPagination: function(total_page, current_page) {
+        var html_obj = document.getElementsByClassName("gallery-pagination");
         for (var i = 1; i <= total_page; i++) {
-            document.getElementsByClassName("gallery-pagination").innerHTML += 
-                '<li class="page-item"><a class="page-link" href="javascript:ctr_gallery.showPage(' + i + ')">' + i + '</a></li>'
+            for (var j = 0; j < html_obj.length; j++){
+                html_obj[j].innerHTML = 
+                    '<li class="page-item"><a class="page-link" href="javascript:ctr_gallery.processPage(' + i + ')">' + i + '</a></li>';
+            }
+            
         }
     },
     goTo : function(is_album, dir) {
