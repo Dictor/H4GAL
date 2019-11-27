@@ -37,15 +37,19 @@ function RequestXhrGet(verb, okcb, errorcb) {
     req.send();
 }
 
-function RequestXhrGetSync(verb) {
-    var req = new XMLHttpRequest();
-    req.open("GET", global_host + "/" + verb, false);
-    req.send();
-    if (req.status == 200) {
-        return req.response;
-    } else {
-        return null;
-    }
+function RequestXhrGetPromise(verb) {
+    return new Promise(function(resolve, reject) {
+        var req = new XMLHttpRequest();
+        req.open("GET", global_host + "/" + verb, true);
+        req.onload = function() {
+            if (req.status == 200) {
+                resolve(req.response);
+            } else {
+                resolve(null);
+            }
+        };
+        req.send(); 
+    })
 }
 
 function RequestXhrPost(verb, param, okcb, errorcb) {
@@ -61,6 +65,7 @@ function RequestXhrPost(verb, param, okcb, errorcb) {
     };
     req.send(param);
 }
+
 function ConvertErrorMessage(msg) {
     switch(msg) {
         case "INCORRECT_CODE": return "올바르지 않은 자격증명 코드";

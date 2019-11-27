@@ -46,12 +46,12 @@ var ctr_gallery = {
     currentPath : "/",
     currentImageResult: {},
     CONST_IMAGE_PER_PAGE: 15,
-    showInit : function() {
-        ctr_gallery.getPage(1); 
-        ctr_gallery.showPage(1);
+    processPage : async function(page_num) {
+        await ctr_gallery.getPage(page_num); 
+        await ctr_gallery.showPage(page_num);
     },
-    getPage : function(page_num) {
-        var preq = JSON.parse(RequestXhrGetSync("list?dir=" + ctr_gallery.currentPath));
+    getPage : async function(page_num) {
+        var preq = JSON.parse(await RequestXhrGetPromise("list?dir=" + ctr_gallery.currentPath));
         if (preq["status"]) {
             ctr_gallery.currentImageResult = preq["result"];
         } else {
@@ -59,11 +59,11 @@ var ctr_gallery = {
             ctr_gallery.currentPath = "/";
         }
     },
-    showPage : function(page_num) { //1 부터 시작
+    showPage : async function(page_num) { //1 부터 시작
         document.getElementById("gallery-image-result").innerHTML = "";
         for(var i = (page_num - 1) * ctr_gallery.CONST_IMAGE_PER_PAGE; i < page_num * ctr_gallery.CONST_IMAGE_PER_PAGE; i++) {
             if (i >= ctr_gallery.currentImageResult.length) break;
-            var current_th = ctr_gallery.currentImageResult[i]["thimg"] == "NONE" ? "img/hamster.png" : ctr_gallery.makeThumbnailBlob(ctr_gallery.currentImageResult[i]["thimg"]);
+            var current_th = ctr_gallery.currentImageResult[i]["thimg"] == "NONE" ? "img/hamster.png" : (await ctr_gallery.makeThumbnailBlob(ctr_gallery.currentImageResult[i]["thimg"]));
             var is_album = ctr_gallery.currentImageResult[i]["type"] == "ALBUM" ? "true" : "false";
             document.getElementById("gallery-image-result").innerHTML +=
                 '<div class="card" onclick="javascript:ctr_gallery.goTo(' + is_album + ",'" + ctr_gallery.currentImageResult[i]["dir"] + '\')"><img src="' + current_th + 
@@ -80,14 +80,13 @@ var ctr_gallery = {
     goTo : function(is_album, dir) {
         if (is_album) {
             ctr_gallery.currentPath += dir;
-            ctr_gallery.getPage(1);
-            ctr_gallery.showPage(1);
+            ctr_gallery.processPage(1);
         } else {
             
         }
     },
-    makeImageBlob : function (dir) {
-        var preq = JSON.parse(RequestXhrGetSync("image?dir=" + dir));
+    makeImageBlob : async function (dir) {
+        var preq = JSON.parse(await RequestXhrGetPromise("image?dir=" + dir));
         if (preq["status"]) {
             return window.URL.createObjectURL(b64toBlob(preq["image"], "data:image"));
         } else {
@@ -95,8 +94,8 @@ var ctr_gallery = {
             return null;
         }
     },
-    makeThumbnailBlob : function (id) {
-        var preq = JSON.parse(RequestXhrGetSync("thumb?id=" + id));
+    makeThumbnailBlob : async function (id) {
+        var preq = JSON.parse(await RequestXhrGetPromise("thumb?id=" + id));
         if (preq["status"]) {
             return window.URL.createObjectURL(b64toBlob(preq["image"], "data:image"));
         } else {
