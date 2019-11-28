@@ -46,6 +46,11 @@ function SaveBlob(url, fileName) {
     a.click();
 }
 
+function ShowImagePopup(url) {
+    var imgWindow = window.open("", "H4GAL Popup");
+    imgWindow.document.write("<img src='" + url + "'>");
+}
+
 function RequestXhrGetPromise(verb) {
     return new Promise(function(resolve, reject) {
         var req = new XMLHttpRequest();

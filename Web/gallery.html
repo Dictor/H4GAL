@@ -36,9 +36,9 @@
             <div class="gallery-view-background" onclick="javascript:document.getElementById('gallery-popup').classList.add('gallery-view-hide');"></div>
             <img id="gallery-image" class="gallery-view-image">
             <div id="gallery-tooltip" class="gallery-view-tooltip">
-                <span class="service-icon"><i class="icon-info"></i></span>
-                <span class="service-icon" onclick="javascript:ctr_gallery.downloadImage()"><i class="icon-cloud-download"></i></span>
-                <span class="service-icon"><i class="icon-frame"></i></span>
+                <span class="service-icon" title="정보" ><i class="icon-info"></i></span>
+                <span class="service-icon" title="저장" onclick="javascript:ctr_gallery.downloadImage()"><i class="icon-cloud-download"></i></span>
+                <span class="service-icon" title="새창에서 열기" onclick="javascript:ctr_gallery.showImagePopup()"><i class="icon-frame"></i></span>
             </div>
         </div>
     </body>

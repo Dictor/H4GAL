@@ -109,6 +109,9 @@ var ctr_gallery = {
     downloadImage : function() {
         SaveBlob(document.getElementById('gallery-image').src, ctr_gallery.currentImageName);
     },
+    showImagePopup: function() {
+        ShowImagePopup(document.getElementById('gallery-image').src);
+    },
     makeImageBlob : async function (dir) {
         var preq = JSON.parse(await RequestXhrGetPromise("image?dir=" + dir));
         if (preq["status"]) {
