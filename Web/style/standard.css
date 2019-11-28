@@ -129,3 +129,27 @@ body {
 	left: 0;
 	opacity: 1;
 }
+
+.gallery-view-tooltip {
+    position: absolute;
+    width: 300px;
+    height: 60px;
+    background-color: #2f4f4f;
+    top: calc(100% - 110px);
+    left: calc(50% - 150px);
+    border-radius: 10px;
+    padding: 0px 10px;
+    
+    display: inline-flex;
+    flex-direction: row;
+    flex-wrap : wrap;
+    justify-content: space-around;
+}
+
+.gallery-view-tooltip span{
+    height: 60px;
+    vertical-align: middle;
+    line-height: 65px;
+    color: darkgray;
+    font-size: 30px;
+}
