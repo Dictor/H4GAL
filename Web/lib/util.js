@@ -44,7 +44,6 @@ function SaveBlob(url, fileName) {
     a.href = url;
     a.download = fileName;
     a.click();
-    window.URL.revokeObjectURL(url);
 }
 
 function RequestXhrGetPromise(verb) {
