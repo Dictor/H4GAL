@@ -52,6 +52,11 @@ var ctr_gallery = {
         await ctr_gallery.showPage(page_num);
         ctr_gallery.showPagination(Math.ceil(ctr_gallery.currentImageResult.length / ctr_gallery.CONST_IMAGE_PER_PAGE), page_num);
     },
+    processView : async function(dir) {
+        document.getElementById("gallery-image").src = "";
+        document.getElementById("gallery-popup").classList.remove("gallery-view-hide");
+        document.getElementById("gallery-image").src = await ctr_gallery.makeImageBlob(dir);
+    },
     checkSession : async function() {
         var preq = JSON.parse(await RequestXhrGetPromise("session/check"));
         if (preq["is_new"] ||  preq["status"] == "empty") {
@@ -93,10 +98,10 @@ var ctr_gallery = {
     },
     goTo : function(is_album, dir) {
         if (is_album) {
-            ctr_gallery.currentPath += dir;
+            ctr_gallery.currentPath += dir + "/";
             ctr_gallery.processPage(1);
         } else {
-            
+            ctr_gallery.processView(ctr_gallery.currentPath + dir);
         }
     },
     makeImageBlob : async function (dir) {
