@@ -84,7 +84,7 @@ var ctr_gallery = {
             document.getElementById("gallery-image-result").innerHTML +=
                 '<div class="card" onclick="javascript:ctr_gallery.goTo(' + is_album + ",'" + ctr_gallery.currentImageResult[i]["dir"] + '\')"><img src="' + current_th + 
                 '" class="card-img-top"><div class="card-body"><h5 class="card-title">' + ctr_gallery.currentImageResult[i]["title"] +
-                '</h5><p class="card-text">' + ctr_gallery.currentImageResult[i]["detail"] + '</p></div>';
+                '</h5><p class="card-text">' + (ctr_gallery.currentImageResult[i]["detail"] ? ctr_gallery.currentImageResult[i]["detail"] : "") + '</p></div>';
         }
     },
     showPagination: function(total_page, current_page) {
