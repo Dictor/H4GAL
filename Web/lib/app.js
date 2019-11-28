@@ -44,6 +44,7 @@ var ctr_index = {
 
 var ctr_gallery = {
     currentPath : "/",
+    currentImageName : "",
     currentImageResult: {},
     CONST_IMAGE_PER_PAGE: 15,
     processPage : async function(page_num) {
@@ -102,7 +103,11 @@ var ctr_gallery = {
             ctr_gallery.processPage(1);
         } else {
             ctr_gallery.processView(ctr_gallery.currentPath + dir);
+            ctr_gallery.currentImageName = dir;
         }
+    },
+    downloadImage : function() {
+        SaveBlob(document.getElementById('gallery-image').src, ctr_gallery.currentImageName);
     },
     makeImageBlob : async function (dir) {
         var preq = JSON.parse(await RequestXhrGetPromise("image?dir=" + dir));

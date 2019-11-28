@@ -37,6 +37,16 @@ function RequestXhrGet(verb, okcb, errorcb) {
     req.send();
 }
 
+function SaveBlob(url, fileName) {
+    var a = document.createElement("a");
+    document.body.appendChild(a);
+    a.style = "display: none";
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
+
 function RequestXhrGetPromise(verb) {
     return new Promise(function(resolve, reject) {
         var req = new XMLHttpRequest();
