@@ -2,13 +2,16 @@ package main
 
 import (
 	"encoding/base64"
+	"fmt"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo-contrib/session"
+	"github.com/rwcarlsen/goexif/exif"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"path"
 	"strings"
 	"time"
@@ -64,6 +67,7 @@ func setRounting(e *echo.Echo) {
 	e.GET("/list", rGetImageList)
 	e.GET("/image", rGetImage)
 	e.GET("/thumb", rGetThumb)
+	e.GET("/exif", rGetExif)
 	e.Static("/web", "../Web")
 }
 
@@ -125,6 +129,61 @@ func rGetImage(cxt echo.Context) error {
 			} else {
 				b64imgdata := base64.StdEncoding.EncodeToString(imgdata)
 				return cxt.JSON(http.StatusOK, map[string]interface{}{"status": true, "image": b64imgdata})
+			}
+		} else {
+			return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "ILLEGAL_REQUEST"})
+		}
+	}
+	return cxt.JSON(http.StatusInternalServerError, map[string]interface{}{"status": false, "error": "INTERNAL_SERVER_ERROR"}) //When all expected situation, code must not be reach here
+}
+
+func rGetExif(cxt echo.Context) error {
+	if res, errdata, _ := checkRequest(cxt, NEED_ASSIGNED_SESSION|NEED_UNEMPTY_CREDENTIAL); !res {
+		return cxt.JSON(http.StatusOK, errdata)
+	} else {
+		if val := cxt.QueryParam("dir"); val != "" {
+			nowpath := path.Clean(val)
+			imgdata, err := os.Open(imagePath + nowpath)
+			if err != nil {
+				log.Println("[rGetExif]", err)
+				return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "PATH_INVALID"})
+			} else {
+				exifdata, err1 := exif.Decode(imgdata)
+				if err1 != nil {
+					return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "DECODE_ERROR"})
+				}
+				//사진 너비 (ImageWidth) 사진 높이 (ImageHeight) 촬영 일시 (DateTime) 카메라 모델 (Model) 플래시 (Flash) GPS 좌표
+				var exif_res = [2][6]string{
+					{"사진 너비", "사진 높이", "촬영 시간", "카메라 모델", "플래시 여부", "GPS"}, //exif 데이터 의사 설명 문자열
+					{"", "", "", "", "", ""}, //exif 데이터 결과 값
+				}
+				var err error
+
+				exif_res[1][0] = getExifData(exifdata, exif.ImageWidth)
+				exif_res[1][1] = getExifData(exifdata, exif.ImageLength)
+				exif_res[1][3] = getExifData(exifdata, exif.Model)
+				exif_res[1][4] = getExifData(exifdata, exif.Flash)
+
+				exif_time, err := exifdata.DateTime()
+				if err != nil {
+					exif_res[1][2] = "알 수 없음"
+				} else {
+					exif_res[1][2] = exif_time.Format("2006-01-02 15:04:05")
+				}
+
+				exif_lat, exif_long, err := exifdata.LatLong()
+				if err != nil {
+					exif_res[1][5] = "알 수 없음"
+				} else {
+					exif_res[1][5] = fmt.Sprintf("%.2f", exif_lat) + " / " + fmt.Sprintf("%.2f", exif_long)
+				}
+
+				var result = make(map[string]interface{})
+				for i := 0; i < len(exif_res[0]); i++ {
+					result[exif_res[0][i]] = exif_res[1][i]
+				}
+				result["status"] = true
+				return cxt.JSON(http.StatusOK, result)
 			}
 		} else {
 			return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "ILLEGAL_REQUEST"})

@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo-contrib/session"
+	"github.com/rwcarlsen/goexif/exif"
 	"io/ioutil"
 	"log"
 	"os"
@@ -65,4 +66,14 @@ func checkFileExist(filename string) bool {
 		return false
 	}
 	return !info.IsDir()
+}
+
+func getExifData(exifdata *exif.Exif, exifparam exif.FieldName) string {
+	res, err := exifdata.Get(exifparam)
+	if err != nil {
+		return "알 수 없음"
+	} else {
+		res, _ := res.StringVal()
+		return res
+	}
 }
