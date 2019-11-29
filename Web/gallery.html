@@ -32,14 +32,15 @@
         <nav><ul class="pagination gallery-pagination justify-content-center"></ul></nav>
         <div id="gallery-image-result"></div>
         <nav><ul class="pagination gallery-pagination justify-content-center"></ul></nav>
-        <div id="gallery-popup" class="gallery-view gallery-view-hide">
-            <div class="gallery-view-background" onclick="javascript:document.getElementById('gallery-popup').classList.add('gallery-view-hide');"></div>
-            <img id="gallery-image" class="gallery-view-image">
-            <div id="gallery-tooltip" class="gallery-view-tooltip">
-                <span class="service-icon" title="정보" ><i class="icon-info"></i></span>
+        <div id="gallery-popup" class="gallery-hide">
+            <div class="gallery-view-background" onclick="javascript:ctr_gallery.hidePopup()"></div>
+            <img id="gallery-image">
+            <div id="gallery-tooltip">
+                <span class="service-icon" title="정보" onclick="javascript:ctr_gallery.showModal()"><i class="icon-info"></i></span>
                 <span class="service-icon" title="저장" onclick="javascript:ctr_gallery.downloadImage()"><i class="icon-cloud-download"></i></span>
                 <span class="service-icon" title="새창에서 열기" onclick="javascript:ctr_gallery.showImagePopup()"><i class="icon-frame"></i></span>
             </div>
+            <div id="gallery-modal" class="gallery-hide"><ul id="gallery-modal-detail"></ul></div>
         </div>
     </body>
 </html>

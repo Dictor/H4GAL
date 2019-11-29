@@ -55,7 +55,7 @@ var ctr_gallery = {
     },
     processView : async function(dir) {
         document.getElementById("gallery-image").src = "";
-        document.getElementById("gallery-popup").classList.remove("gallery-view-hide");
+        document.getElementById("gallery-popup").classList.remove("gallery-hide");
         document.getElementById("gallery-image").src = await ctr_gallery.makeImageBlob(dir);
     },
     checkSession : async function() {
@@ -111,6 +111,22 @@ var ctr_gallery = {
     },
     showImagePopup: function() {
         ShowImagePopup(document.getElementById('gallery-image').src);
+    },
+    showModal: async function() {
+        document.getElementById("gallery-modal-detail").innerHTML = "";
+        var preq = JSON.parse(await RequestXhrGetPromise("exif?dir=" + ctr_gallery.currentPath + ctr_gallery.currentImageName));
+        if (preq["status"]) {
+            for (const [key, value] of Object.entries(preq["result"])) {
+                document.getElementById("gallery-modal-detail").innerHTML += "<li>" + key + " : " + value + "</li>";
+            }
+        } else {
+            document.getElementById("gallery-modal-detail").innerHTML = "EXIF 정보를 읽을 수 없습니다."
+        }
+        document.getElementById("gallery-modal").classList.remove("gallery-hide");
+    },
+    hidePopup: function() {
+        document.getElementById('gallery-popup').classList.add('gallery-hide');
+        document.getElementById('gallery-modal').classList.add('gallery-hide');
     },
     makeImageBlob : async function (dir) {
         var preq = JSON.parse(await RequestXhrGetPromise("image?dir=" + dir));
