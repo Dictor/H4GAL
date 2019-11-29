@@ -182,8 +182,7 @@ func rGetExif(cxt echo.Context) error {
 				for i := 0; i < len(exif_res[0]); i++ {
 					result[exif_res[0][i]] = exif_res[1][i]
 				}
-				result["status"] = true
-				return cxt.JSON(http.StatusOK, result)
+				return cxt.JSON(http.StatusOK, map[string]interface{}{"status": true, "result": result})
 			}
 		} else {
 			return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "ILLEGAL_REQUEST"})
