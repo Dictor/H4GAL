@@ -5,7 +5,10 @@ import (
 	"github.com/kardianos/osext"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo-contrib/session"
+	"io"
 	"log"
+	"os"
+	"time"
 )
 
 var executionPath, thumbnailPath, imagePath, logPath string
@@ -21,14 +24,24 @@ func checkError(err error) {
 
 func main() {
 	var err error
+
 	executionPath, err = osext.ExecutableFolder()
 	checkError(err)
+
 	allowDispAuthCode, err = readFileLines(executionPath + "/allowDispAuthCode.txt")
 	checkError(err)
+
 	imagePath = executionPath + "/image"
 	thumbnailPath = executionPath + "/thumb"
 	logPath = executionPath + "/log"
 	prepareDirectory(imagePath, thumbnailPath, logPath)
+
+	fpLog, err := os.OpenFile(logPath+"/"+time.Now().Format("2006-01-02T15:04:05")+".txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	checkError(err)
+	defer fpLog.Close()
+	multiWriter := io.MultiWriter(fpLog, os.Stdout)
+	log.SetOutput(multiWriter)
+
 	thok, thfail, err := makeRecursiveThumnail(imagePath, thumbnailPath)
 	checkError(err)
 
