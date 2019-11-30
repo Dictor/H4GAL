@@ -5,6 +5,8 @@ import (
 	"github.com/kardianos/osext"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo-contrib/session"
+	"github.com/labstack/echo/middleware"
+	"github.com/labstack/gommon/random"
 	"io"
 	"log"
 	"os"
@@ -14,7 +16,7 @@ import (
 var executionPath, thumbnailPath, imagePath, logPath string
 var allowDispAuthCode []string
 
-const serverVersion string = "191129"
+const serverVersion string = "191130"
 
 func checkError(err error) {
 	if err != nil {
@@ -56,6 +58,15 @@ func main() {
 
 	main_server := echo.New()
 	main_server.Use(session.Middleware(sessions.NewFilesystemStore("", []byte("<TEST SECRET!!>"))))
+	main_server.Use(middleware.RequestIDWithConfig(middleware.RequestIDConfig{
+		Generator: func() string {
+			return random.String(8)
+		},
+	}))
+	main_server.HTTPErrorHandler = func(err error, cxt echo.Context) {
+		log.Println(makeLogPrefix(cxt, "HTTP_ERROR_HANDLER"), err)
+		main_server.DefaultHTTPErrorHandler(err, cxt)
+	}
 	setRounting(main_server)
 	main_server.Logger.Fatal(main_server.Start(":80"))
 }

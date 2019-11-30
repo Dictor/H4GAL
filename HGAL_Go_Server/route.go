@@ -72,6 +72,7 @@ func setRounting(e *echo.Echo) {
 }
 
 func rGetImageList(cxt echo.Context) error {
+	log.Println(makeLogPrefix(cxt, "rGetImageList"))
 	if res, errdata, _ := checkRequest(cxt, NEED_ASSIGNED_SESSION|NEED_UNEMPTY_CREDENTIAL); !res {
 		return cxt.JSON(http.StatusOK, errdata)
 	} else {
@@ -79,7 +80,7 @@ func rGetImageList(cxt echo.Context) error {
 			nowpath := imagePath + path.Clean(val)
 			dirlist, err := readFileLines(nowpath + "/imglist.lst")
 			if err != nil {
-				log.Println("[rGetImageList]", err)
+				log.Println(makeLogPrefix(cxt, "rGetImageList"), err)
 				return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "PATH_INVALID"})
 			} else {
 				var reslist []interface{}
@@ -88,7 +89,7 @@ func rGetImageList(cxt echo.Context) error {
 					if nowprop[0] == "AUTOPHOTO" {
 						files, err := ioutil.ReadDir(nowpath)
 						if err != nil {
-							log.Println("[rGetImageList]", err)
+							log.Println(makeLogPrefix(cxt, "rGetImageList"), err)
 							return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "PATH_INVALID"})
 						} else {
 							for _, file := range files {
@@ -97,7 +98,7 @@ func rGetImageList(cxt echo.Context) error {
 								}
 								name, err := getThumbnailName(nowpath + "/" + file.Name())
 								if err != nil {
-									log.Println("[rGetImageList]", err)
+									log.Println(makeLogPrefix(cxt, "rGetImageList"), err)
 								} else {
 									reslist = append(reslist, map[string]interface{}{"type": "PHOTO", "dir": file.Name(), "title": file.Name(), "detail": nil, "thimg": name, "isautoth": true})
 								}
@@ -107,6 +108,7 @@ func rGetImageList(cxt echo.Context) error {
 						reslist = append(reslist, map[string]interface{}{"type": nowprop[0], "dir": nowprop[1], "title": nowprop[2], "detail": nowprop[3], "thimg": nowprop[4], "isautoth": false})
 					}
 				}
+				log.Println(makeLogPrefix(cxt, "rGetImageList"), "Image list responsed! →", len(reslist))
 				return cxt.JSON(http.StatusOK, map[string]interface{}{"status": true, "result": reslist})
 			}
 		} else {
@@ -117,6 +119,7 @@ func rGetImageList(cxt echo.Context) error {
 }
 
 func rGetImage(cxt echo.Context) error {
+	log.Println(makeLogPrefix(cxt, "rGetImage"))
 	if res, errdata, _ := checkRequest(cxt, NEED_ASSIGNED_SESSION|NEED_UNEMPTY_CREDENTIAL); !res {
 		return cxt.JSON(http.StatusOK, errdata)
 	} else {
@@ -124,10 +127,11 @@ func rGetImage(cxt echo.Context) error {
 			nowpath := path.Clean(val)
 			imgdata, err := ioutil.ReadFile(imagePath + nowpath)
 			if err != nil {
-				log.Println("[rGetImage]", err)
+				log.Println(makeLogPrefix(cxt, "rGetImage"), err)
 				return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "PATH_INVALID"})
 			} else {
 				b64imgdata := base64.StdEncoding.EncodeToString(imgdata)
+				log.Println(makeLogPrefix(cxt, "rGetImage"), "Image responsed! →", len(b64imgdata))
 				return cxt.JSON(http.StatusOK, map[string]interface{}{"status": true, "image": b64imgdata})
 			}
 		} else {
@@ -138,6 +142,7 @@ func rGetImage(cxt echo.Context) error {
 }
 
 func rGetExif(cxt echo.Context) error {
+	log.Println(makeLogPrefix(cxt, "rGetExif"))
 	if res, errdata, _ := checkRequest(cxt, NEED_ASSIGNED_SESSION|NEED_UNEMPTY_CREDENTIAL); !res {
 		return cxt.JSON(http.StatusOK, errdata)
 	} else {
@@ -145,7 +150,7 @@ func rGetExif(cxt echo.Context) error {
 			nowpath := path.Clean(val)
 			imgdata, err := os.Open(imagePath + nowpath)
 			if err != nil {
-				log.Println("[rGetExif]", err)
+				log.Println(makeLogPrefix(cxt, "rGetExif"), err)
 				return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "PATH_INVALID"})
 			} else {
 				exifdata, err1 := exif.Decode(imgdata)
@@ -182,6 +187,7 @@ func rGetExif(cxt echo.Context) error {
 				for i := 0; i < len(exif_res[0]); i++ {
 					result[exif_res[0][i]] = exif_res[1][i]
 				}
+				log.Println(makeLogPrefix(cxt, "rGetExif"), "Exif responsed! →", len(result))
 				return cxt.JSON(http.StatusOK, map[string]interface{}{"status": true, "result": result})
 			}
 		} else {
@@ -192,6 +198,7 @@ func rGetExif(cxt echo.Context) error {
 }
 
 func rGetThumb(cxt echo.Context) error {
+	log.Println(makeLogPrefix(cxt, "rGetThumb"))
 	if res, errdata, _ := checkRequest(cxt, NEED_ASSIGNED_SESSION|NEED_UNEMPTY_CREDENTIAL); !res {
 		return cxt.JSON(http.StatusOK, errdata)
 	} else {
@@ -199,10 +206,11 @@ func rGetThumb(cxt echo.Context) error {
 			nowid := path.Clean(val)
 			imgdata, err := ioutil.ReadFile(thumbnailPath + "/" + nowid + ".jpg")
 			if err != nil {
-				log.Println("[rGetThumb]", err)
+				log.Println(makeLogPrefix(cxt, "rGetThumb"), err)
 				return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "PATH_INVALID"})
 			} else {
 				b64imgdata := base64.StdEncoding.EncodeToString(imgdata)
+				log.Println(makeLogPrefix(cxt, "rGetThumb"), "Thumbnail responsed! →", len(b64imgdata))
 				return cxt.JSON(http.StatusOK, map[string]interface{}{"status": true, "image": b64imgdata})
 			}
 		} else {
@@ -213,6 +221,7 @@ func rGetThumb(cxt echo.Context) error {
 }
 
 func rTryDisposableAuth(cxt echo.Context) error {
+	log.Println(makeLogPrefix(cxt, "rTryDisposableAuth"))
 	if res, errdata, reqdata := checkRequest(cxt, NEED_ASSIGNED_SESSION|NEED_POST_REQUEST_DATA|NEED_EMPTY_CREDENTIAL); !res {
 		return cxt.JSON(http.StatusOK, errdata)
 	} else {
@@ -244,6 +253,7 @@ func rTryDisposableAuth(cxt echo.Context) error {
 		if codeok && nameok {
 			setSessionValue(cxt, "credential_type", "disp")
 			setSessionValue(cxt, "user_name", resname)
+			log.Println(makeLogPrefix(cxt, "rTryDisposableAuth"), "Disposable auth issued! :", resname)
 			return cxt.JSON(http.StatusOK, map[string]interface{}{"status": true})
 		} else if !nameok {
 			return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "ILLEGAL_NAME"})
@@ -256,6 +266,7 @@ func rTryDisposableAuth(cxt echo.Context) error {
 
 func rCheckSession(cxt echo.Context) error {
 	hassess := hasSession(cxt)
+	log.Println(makeLogPrefix(cxt, "rCheckSession"), hassess)
 	if !hassess {
 		return cxt.JSON(http.StatusOK, map[string]interface{}{"is_new": true, "error": "NOT_ASSIGNED_SESSION"})
 	} else {
@@ -279,5 +290,6 @@ func rAssignSession(cxt echo.Context) error {
 		sess.Values["user_name"] = ""
 	}
 	sess.Save(cxt.Request(), cxt.Response())
+	log.Println(makeLogPrefix(cxt, "rAssignSession"), exist)
 	return cxt.JSON(http.StatusOK, map[string]interface{}{"is_new": !exist, "assigned_time": sess.Values["assigned_time"].(string)})
 }

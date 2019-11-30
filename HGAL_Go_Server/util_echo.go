@@ -6,6 +6,7 @@ import (
 	"log"
 )
 
+//cxt를 포인터로 받는게 낫지 않나??
 func getPostRequestData(cxt echo.Context) (bool, map[string]interface{}) {
 	res := make(map[string]interface{})
 	if err := cxt.Bind(&res); err != nil {
@@ -33,4 +34,17 @@ func setSessionValue(cxt echo.Context, key string, val string) {
 	sess, _ := session.Get("session", cxt)
 	sess.Values[key] = val
 	sess.Save(cxt.Request(), cxt.Response())
+}
+
+func makeLogPrefix(cxt echo.Context, func_name string) string {
+	id := cxt.Request().Header.Get(echo.HeaderXRequestID)
+	if id == "" {
+		id = cxt.Response().Header().Get(echo.HeaderXRequestID)
+	}
+	var params = [...]string{func_name, id, cxt.RealIP(), cxt.Path() + "?" + cxt.QueryString()}
+	var result string
+	for _, val := range params {
+		result += "[" + val + "]"
+	}
+	return result
 }
