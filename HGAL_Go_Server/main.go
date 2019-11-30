@@ -48,7 +48,8 @@ func main() {
 	log.Println("\n------ HGAL API Server successfully initialized!!\n* Execution path :\t",
 		executionPath, "\n* Thumbnail path :\t",
 		thumbnailPath, "\n* Image path :\t\t",
-		imagePath, "\n* Version :\t\t",
+		imagePath, "\n* Log path :\t\t",
+		logPath, "\n* Version :\t\t",
 		serverVersion, "\n* Thumbnail made :\t",
 		thok, "\n* Thumbnail fail :\t",
 		thfail)
