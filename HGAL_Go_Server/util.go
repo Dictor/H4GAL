@@ -77,3 +77,11 @@ func getExifData(exifdata *exif.Exif, exifparam exif.FieldName) string {
 		return res
 	}
 }
+
+func prepareDirectory(dir ...string) {
+	for _, val := range dir {
+		if _, err := os.Stat(val); os.IsNotExist(err) {
+			os.Mkdir(val, 0755)
+		}
+	}
+}

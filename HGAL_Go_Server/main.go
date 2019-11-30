@@ -8,7 +8,7 @@ import (
 	"log"
 )
 
-var executionPath, thumbnailPath, imagePath string
+var executionPath, thumbnailPath, imagePath, logPath string
 var allowDispAuthCode []string
 
 const serverVersion string = "191129"
@@ -27,6 +27,8 @@ func main() {
 	checkError(err)
 	imagePath = executionPath + "/image"
 	thumbnailPath = executionPath + "/thumb"
+	logPath = executionPath + "/log"
+	prepareDirectory(imagePath, thumbnailPath, logPath)
 	thok, thfail, err := makeRecursiveThumnail(imagePath, thumbnailPath)
 	checkError(err)
 
