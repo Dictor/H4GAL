@@ -93,9 +93,12 @@ body {
 
 .gallery-pagination {
     margin: 10px 0px;
+    display: inline-flex !important;
+}
+
+.gallery-pagination-nav {
     text-align: center;
-    overflow-x: auto;
-    width: 100%;
+	overflow-x: auto;
 }
 
 .gallery-hide {
@@ -135,8 +138,8 @@ body {
 
 .gallery-view-spinner {
     position: absolute;
-    top: calc(50% - 2rem);
-    left: calc(50% - 2rem);
+    top: calc(50% - 1rem);
+    left: calc(50% - 1rem);
 }
 
 #gallery-tooltip {
