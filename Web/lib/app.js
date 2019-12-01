@@ -17,24 +17,19 @@ var ctr_index = {
             );
         }
     },
-    checkSession : function(evt) {
-            RequestXhrGet(  
-                "session/check",
-                function(req){
-                    var preq = JSON.parse(req);
-                    console.log("Session : ", preq)
-                    if (preq["is_new"] === true) {
-                        RequestXhrGet(  
-                            "session/assign",
-                            null,
-                            function() {alert("알 수 없는 API 오류!")}
-                        );
-                    } else {
-                        if (preq["status"] != "empty") location.href = "gallery.html";
-                    }
-                }, 
-                function() {alert("알 수 없는 API 오류!")}
-            );
+    checkSession : async function() {
+        var req = await RequestXhrGetPromise("session/check");
+        if (req === null) {
+            alert("서버가 응답하지 않습니다! 관리자에게 문의하세요.");
+            return;
+        }
+        var preq = JSON.parse(req);
+        if (preq["is_new"] === true) {
+            alert("권한이 없습니다! 메인 페이지로 돌아갑니다.");
+            await RequestXhrGetPromise("session/assign");
+        } else {
+            if (preq["status"] != "empty") location.href = "gallery.html";
+        }
     },
     showDispMenu: function() {
         $("#index-login-select").hide();
@@ -59,7 +54,12 @@ var ctr_gallery = {
         document.getElementById("gallery-image").src = await ctr_gallery.makeImageBlob(dir);
     },
     checkSession : async function() {
-        var preq = JSON.parse(await RequestXhrGetPromise("session/check"));
+        var req = await RequestXhrGetPromise("session/check");
+        if (req === null) {
+            alert("서버가 응답하지 않습니다! 관리자에게 문의하세요.");
+            return;
+        }
+        var preq = JSON.parse(req);
         if (preq["is_new"] ||  preq["status"] == "empty") {
             alert("권한이 없습니다! 메인 페이지로 돌아갑니다.");
         } else {
