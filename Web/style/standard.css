@@ -93,6 +93,9 @@ body {
 
 .gallery-pagination {
     margin: 10px 0px;
+    text-align: center;
+    overflow-x: auto;
+    width: 100%;
 }
 
 .gallery-hide {
