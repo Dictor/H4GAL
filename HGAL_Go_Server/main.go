@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-var executionPath, thumbnailPath, imagePath, logPath string
+var executionPath, thumbnailPath, imagePath, logPath, sessionPath string
 var config map[string]interface{}
 
 const serverVersion string = "191201"
@@ -41,7 +41,8 @@ func main() {
 	imagePath = executionPath + "/image"
 	thumbnailPath = executionPath + "/thumb"
 	logPath = executionPath + "/log"
-	prepareDirectory(imagePath, thumbnailPath, logPath)
+	sessionPath = executionPath + "/session"
+	prepareDirectory(imagePath, thumbnailPath, logPath, sessionPath)
 
 	fpLog, err := os.OpenFile(logPath+"/"+time.Now().Format("2006-01-02T15_04_05")+".txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	checkError(err)
@@ -62,15 +63,16 @@ func main() {
 		thfail)
 
 	main_server := echo.New()
-	main_server.Use(session.Middleware(sessions.NewFilesystemStore("", []byte(config["session_secret"].(string)))))
+	main_server.Use(session.Middleware(sessions.NewFilesystemStore(sessionPath, []byte(config["session_secret"].(string)))))
 	main_server.Use(middleware.RequestIDWithConfig(middleware.RequestIDConfig{
 		Generator: func() string {
 			return random.String(8)
 		},
 	}))
 	main_server.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: convertInterfaceArrToStringArr(config["allow_cors_origin"]),
-		AllowMethods: []string{"GET", "POST"},
+		AllowOrigins:     convertInterfaceArrToStringArr(config["allow_cors_origin"]),
+		AllowMethods:     []string{"GET", "POST"},
+		AllowCredentials: true,
 	}))
 	main_server.HTTPErrorHandler = func(err error, cxt echo.Context) {
 		log.Println(makeLogPrefix(cxt, "HTTP_ERROR_HANDLER"), err)
