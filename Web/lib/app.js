@@ -43,10 +43,12 @@ var ctr_gallery = {
     currentImageResult: {},
     CONST_IMAGE_PER_PAGE: 12,
     processPage : async function(page_num) {
+        document.getElementById("gallery-load-popup").classList.remove("gallery-hide");
         await ctr_gallery.checkSession();
         await ctr_gallery.getPage(page_num); 
         await ctr_gallery.showPage(page_num);
         ctr_gallery.showPagination(Math.ceil(ctr_gallery.currentImageResult.length / ctr_gallery.CONST_IMAGE_PER_PAGE), page_num);
+        document.getElementById("gallery-load-popup").classList.add("gallery-hide");
     },
     processView : async function(dir) {
         document.getElementById("gallery-image").src = "";
