@@ -184,6 +184,8 @@ body {
 
 #gallery-load-popup span {
     position: absolute;
-    top: calc(50% + 1rem);
-    left: calc(50% - 1rem);
+    top: calc(50% + 1.2rem);
+    left: calc(50% - 45px);
+    color: whitesmoke;
+    font-weight: bold;
 }
