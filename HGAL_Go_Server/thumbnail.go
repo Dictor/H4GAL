@@ -51,8 +51,11 @@ func makeRecursiveThumnail(startDir string, thumbDir string) (madecnt int, errcn
 			} else {
 				thumbPath := thumbDir + "/" + name + ".jpg"
 				if !checkFileExist(thumbPath) {
+					log.Println("[makeRecursiveThumnail]", nowpath, "→", thumbPath)
 					makeThumbnail(nowpath, thumbPath, 300)
 					madecnt++
+				} else {
+					errcnt++
 				}
 			}
 		}
