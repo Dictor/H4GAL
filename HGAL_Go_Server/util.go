@@ -21,7 +21,7 @@ func isImageFile(filename string) bool {
 	pname := strings.Split(filename, ".")
 	res := false
 	for _, ext := range allow_image_extension {
-		if ext == pname[len(pname)-1] {
+		if ext == strings.ToLower(pname[len(pname)-1]) {
 			res = true
 		}
 	}
