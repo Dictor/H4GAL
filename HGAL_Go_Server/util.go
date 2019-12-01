@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/rwcarlsen/goexif/exif"
+	"image"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -61,4 +62,12 @@ func convertInterfaceArrToStringArr(originRaw interface{}) []string {
 		result = append(result, val.(string))
 	}
 	return result
+}
+
+func getImageDimension(file *os.File) (int, int, error) {
+	image, _, err := image.DecodeConfig(file)
+	if err != nil {
+		return 0, 0, err
+	}
+	return image.Width, image.Height, nil
 }

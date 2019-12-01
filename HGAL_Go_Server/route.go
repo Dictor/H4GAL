@@ -157,6 +157,7 @@ func rGetExif(cxt echo.Context) error {
 				if err1 != nil {
 					return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "DECODE_ERROR"})
 				}
+
 				//사진 너비 (ImageWidth) 사진 높이 (ImageHeight) 촬영 일시 (DateTime) 카메라 모델 (Model) 플래시 (Flash) GPS 좌표
 				var exif_res = [2][6]string{
 					{"사진 너비", "사진 높이", "촬영 시간", "카메라 모델", "플래시 여부", "GPS"}, //exif 데이터 의사 설명 문자열
@@ -164,8 +165,15 @@ func rGetExif(cxt echo.Context) error {
 				}
 				var err error
 
-				exif_res[1][0] = getExifData(exifdata, exif.ImageWidth)
-				exif_res[1][1] = getExifData(exifdata, exif.ImageLength)
+				width, height, err2 := getImageDimension(imgdata)
+				if err2 != nil {
+					exif_res[1][0] = "알 수 없음"
+					exif_res[1][1] = "알 수 없음"
+				} else {
+					exif_res[1][0] = string(width) + "px"
+					exif_res[1][1] = string(height) + "px"
+				}
+
 				exif_res[1][3] = getExifData(exifdata, exif.Model)
 				exif_res[1][4] = getExifData(exifdata, exif.Flash)
 
