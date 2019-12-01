@@ -16,7 +16,7 @@ import (
 var executionPath, thumbnailPath, imagePath, logPath string
 var allowDispAuthCode []string
 
-const serverVersion string = "191130"
+const serverVersion string = "191201"
 
 func checkError(err error) {
 	if err != nil {
@@ -38,7 +38,7 @@ func main() {
 	logPath = executionPath + "/log"
 	prepareDirectory(imagePath, thumbnailPath, logPath)
 
-	fpLog, err := os.OpenFile(logPath+"/"+time.Now().Format("2006-01-02T15:04:05")+".txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	fpLog, err := os.OpenFile(logPath+"/"+time.Now().Format("2006-01-02T15_04_05")+".txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	checkError(err)
 	defer fpLog.Close()
 	multiWriter := io.MultiWriter(fpLog, os.Stdout)
