@@ -133,6 +133,12 @@ body {
 	opacity: 1;
 }
 
+.gallery-view-spinner {
+    position: absolute;
+    top: calc(50% - 2rem);
+    left: calc(50% - 2rem);
+}
+
 #gallery-tooltip {
     position: absolute;
     width: 300px;
