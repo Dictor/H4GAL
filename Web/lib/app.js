@@ -90,12 +90,14 @@ var ctr_gallery = {
     },
     showPagination: function(total_page, current_page) {
         var html_obj = document.getElementsByClassName("gallery-pagination");
+        for (var j = 0; j < html_obj.length; j++){
+            html_obj[j].innerHTML = "";
+        }
         for (var i = 1; i <= total_page; i++) {
             for (var j = 0; j < html_obj.length; j++){
-                html_obj[j].innerHTML =+ 
+                html_obj[j].innerHTML += 
                     '<li class="page-item"><a class="page-link" href="javascript:ctr_gallery.processPage(' + i + ')">' + i + '</a></li>';
             }
-            
         }
     },
     goTo : function(is_album, dir) {
