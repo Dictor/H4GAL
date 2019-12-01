@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/gorilla/sessions"
 	"github.com/kardianos/osext"
 	"github.com/labstack/echo"
@@ -8,13 +9,14 @@ import (
 	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/random"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"time"
 )
 
 var executionPath, thumbnailPath, imagePath, logPath string
-var allowDispAuthCode []string
+var config map[string]interface{}
 
 const serverVersion string = "191201"
 
@@ -30,7 +32,10 @@ func main() {
 	executionPath, err = osext.ExecutableFolder()
 	checkError(err)
 
-	allowDispAuthCode, err = readFileLines(executionPath + "/allowDispAuthCode.txt")
+	var configRaw []byte
+	configRaw, err = ioutil.ReadFile(executionPath + "/config.json")
+	checkError(err)
+	err = json.Unmarshal(configRaw, &config)
 	checkError(err)
 
 	imagePath = executionPath + "/image"
@@ -57,16 +62,20 @@ func main() {
 		thfail)
 
 	main_server := echo.New()
-	main_server.Use(session.Middleware(sessions.NewFilesystemStore("", []byte("<TEST SECRET!!>"))))
+	main_server.Use(session.Middleware(sessions.NewFilesystemStore("", []byte(config["session_secret"].(string)))))
 	main_server.Use(middleware.RequestIDWithConfig(middleware.RequestIDConfig{
 		Generator: func() string {
 			return random.String(8)
 		},
+	}))
+	main_server.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: convertInterfaceArrToStringArr(config["allow_cors_origin"]),
+		AllowMethods: []string{"GET", "POST"},
 	}))
 	main_server.HTTPErrorHandler = func(err error, cxt echo.Context) {
 		log.Println(makeLogPrefix(cxt, "HTTP_ERROR_HANDLER"), err)
 		main_server.DefaultHTTPErrorHandler(err, cxt)
 	}
 	setRounting(main_server)
-	main_server.Logger.Fatal(main_server.Start(":80"))
+	main_server.Logger.Fatal(main_server.Start(":" + config["server_port"].(string)))
 }

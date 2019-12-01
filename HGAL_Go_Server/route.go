@@ -242,7 +242,8 @@ func rTryDisposableAuth(cxt echo.Context) error {
 		if code, err := reqdata["code"]; !err {
 			return cxt.JSON(http.StatusOK, map[string]interface{}{"status": false, "error": "ILLEGAL_REQUEST"})
 		} else {
-			for _, nowcode := range allowDispAuthCode {
+			var configCode []string = convertInterfaceArrToStringArr(config["allow_disp_code"])
+			for _, nowcode := range configCode {
 				if code.(string) == nowcode {
 					codeok = true
 				}

@@ -53,3 +53,12 @@ func prepareDirectory(dir ...string) {
 		}
 	}
 }
+
+func convertInterfaceArrToStringArr(originRaw interface{}) []string {
+	var origin []interface{} = originRaw.([]interface{})
+	var result []string
+	for _, val := range origin {
+		result = append(result, val.(string))
+	}
+	return result
+}
