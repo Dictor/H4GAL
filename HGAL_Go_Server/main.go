@@ -59,7 +59,7 @@ func main() {
 		executionPath, "\n* Thumbnail path :\t",
 		thumbnailPath, "\n* Image path :\t\t",
 		imagePath, "\n* Log path :\t\t",
-		logPath, "→", fpLog.Name, "\n* Version :\t\t",
+		logPath, "→", fpLog.Name(), "\n* Version :\t\t",
 		serverVersion, "\n* Thumbnail made :\t",
 		thok, "\n* Thumbnail fail :\t",
 		thfail)

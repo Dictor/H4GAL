@@ -173,6 +173,7 @@ func rGetExif(cxt echo.Context) error {
 				if err2 != nil {
 					exif_res[1][0] = "알 수 없음"
 					exif_res[1][1] = "알 수 없음"
+					log.Println(makeLogPrefix(cxt, "rGetExif"), "Image size getting error :", err2)
 				} else {
 					exif_res[1][0] = string(width) + "px"
 					exif_res[1][1] = string(height) + "px"
