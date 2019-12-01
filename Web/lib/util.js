@@ -27,6 +27,7 @@ function b64toBlob(b64Data, contentType, sliceSize) {
 function RequestXhrGet(verb, okcb, errorcb) {
     var req = new XMLHttpRequest();
     req.open("GET", global_host + "/" + verb, true);
+    req.withCredentials = true;
     req.onload = function() {
         if (req.status == 200) {
             okcb(req.response);
@@ -55,6 +56,7 @@ function RequestXhrGetPromise(verb) {
     return new Promise(function(resolve, reject) {
         var req = new XMLHttpRequest();
         req.open("GET", global_host + "/" + verb, true);
+        req.withCredentials = true;
         req.onload = function() {
             if (req.status == 200) {
                 resolve(req.response);
@@ -69,6 +71,7 @@ function RequestXhrGetPromise(verb) {
 function RequestXhrPost(verb, param, okcb, errorcb) {
     var req = new XMLHttpRequest();
     req.open("POST", global_host + "/" + verb, true);
+    req.withCredentials = true;
     req.setRequestHeader('Content-Type', 'application/json');
     req.onload = function() {
         if (req.status == 200) {
