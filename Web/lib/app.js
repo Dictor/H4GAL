@@ -80,6 +80,7 @@ var ctr_gallery = {
         for(var i = (page_num - 1) * ctr_gallery.CONST_IMAGE_PER_PAGE; i < page_num * ctr_gallery.CONST_IMAGE_PER_PAGE; i++) {
             if (i >= ctr_gallery.currentImageResult.length) break;
             var current_th = ctr_gallery.currentImageResult[i]["thimg"] == "NONE" ? "img/hamster.png" : (await ctr_gallery.makeThumbnailBlob(ctr_gallery.currentImageResult[i]["thimg"]));
+            current_th = (current_th === null ? "img/hamster.png" : current_th);
             var is_album = ctr_gallery.currentImageResult[i]["type"] == "ALBUM" ? "true" : "false";
             document.getElementById("gallery-image-result").innerHTML +=
                 '<div class="card" onclick="javascript:ctr_gallery.goTo(' + is_album + ",'" + ctr_gallery.currentImageResult[i]["dir"] + '\')"><img src="' + current_th + 
@@ -91,7 +92,7 @@ var ctr_gallery = {
         var html_obj = document.getElementsByClassName("gallery-pagination");
         for (var i = 1; i <= total_page; i++) {
             for (var j = 0; j < html_obj.length; j++){
-                html_obj[j].innerHTML = 
+                html_obj[j].innerHTML =+ 
                     '<li class="page-item"><a class="page-link" href="javascript:ctr_gallery.processPage(' + i + ')">' + i + '</a></li>';
             }
             
