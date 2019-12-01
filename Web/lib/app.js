@@ -46,7 +46,7 @@ var ctr_gallery = {
     currentPath : "/",
     currentImageName : "",
     currentImageResult: {},
-    CONST_IMAGE_PER_PAGE: 15,
+    CONST_IMAGE_PER_PAGE: 12,
     processPage : async function(page_num) {
         await ctr_gallery.checkSession();
         await ctr_gallery.getPage(page_num); 
