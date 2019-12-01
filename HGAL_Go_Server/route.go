@@ -105,7 +105,11 @@ func rGetImageList(cxt echo.Context) error {
 							}
 						}
 					} else {
-						reslist = append(reslist, map[string]interface{}{"type": nowprop[0], "dir": nowprop[1], "title": nowprop[2], "detail": nowprop[3], "thimg": nowprop[4], "isautoth": false})
+						if len(nowprop) >= 5 {
+							reslist = append(reslist, map[string]interface{}{"type": nowprop[0], "dir": nowprop[1], "title": nowprop[2], "detail": nowprop[3], "thimg": nowprop[4], "isautoth": false})
+						} else {
+							log.Println(makeLogPrefix(cxt, "rGetImageList"), "Parse error : ", nowline)
+						}
 					}
 				}
 				log.Println(makeLogPrefix(cxt, "rGetImageList"), "Image list responsed! →", len(reslist))
