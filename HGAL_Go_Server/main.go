@@ -18,7 +18,7 @@ import (
 var executionPath, thumbnailPath, imagePath, logPath, sessionPath string
 var config map[string]interface{}
 
-const serverVersion string = "191201"
+const serverVersion string = "191201-2"
 
 func checkError(err error) {
 	if err != nil {
@@ -50,14 +50,16 @@ func main() {
 	multiWriter := io.MultiWriter(fpLog, os.Stdout)
 	log.SetOutput(multiWriter)
 
+	log.Println("Thumbnail inspecting start")
 	thok, thfail, err := makeRecursiveThumnail(imagePath, thumbnailPath)
 	checkError(err)
+	log.Println("Thumbnail inspecting complete")
 
 	log.Println("\n------ HGAL API Server successfully initialized!!\n* Execution path :\t",
 		executionPath, "\n* Thumbnail path :\t",
 		thumbnailPath, "\n* Image path :\t\t",
 		imagePath, "\n* Log path :\t\t",
-		logPath, "\n* Version :\t\t",
+		logPath, "→", fpLog.Name, "\n* Version :\t\t",
 		serverVersion, "\n* Thumbnail made :\t",
 		thok, "\n* Thumbnail fail :\t",
 		thfail)
