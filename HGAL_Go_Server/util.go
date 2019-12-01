@@ -3,6 +3,9 @@ package main
 import (
 	"github.com/rwcarlsen/goexif/exif"
 	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"io/ioutil"
 	"os"
 	"strings"
