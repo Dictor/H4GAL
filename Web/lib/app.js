@@ -25,7 +25,6 @@ var ctr_index = {
         }
         var preq = JSON.parse(req);
         if (preq["is_new"] === true) {
-            alert("권한이 없습니다! 메인 페이지로 돌아갑니다.");
             await RequestXhrGetPromise("session/assign");
         } else {
             if (preq["status"] != "empty") location.href = "gallery.html";
@@ -64,6 +63,7 @@ var ctr_gallery = {
         var preq = JSON.parse(req);
         if (preq["is_new"] ||  preq["status"] == "empty") {
             alert("권한이 없습니다! 메인 페이지로 돌아갑니다.");
+            location.href = "index.html";
         } else {
             document.getElementById("gallery-navbar-username").innerHTML = preq["name"];
         }
