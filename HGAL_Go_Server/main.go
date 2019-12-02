@@ -18,7 +18,7 @@ import (
 var executionPath, thumbnailPath, imagePath, logPath, sessionPath string
 var config map[string]interface{}
 
-const serverVersion string = "191201-3"
+const serverVersion string = "191202-1"
 
 func checkError(err error) {
 	if err != nil {

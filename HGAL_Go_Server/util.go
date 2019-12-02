@@ -67,10 +67,14 @@ func convertInterfaceArrToStringArr(originRaw interface{}) []string {
 	return result
 }
 
-func getImageDimension(file *os.File) (int, int, error) {
-	image, _, err := image.DecodeConfig(file)
+func getImageDimension(path string) (int, int, error) {
+	imgdata, err := os.Open(path)
 	if err != nil {
 		return 0, 0, err
 	}
-	return image.Width, image.Height, nil
+	dimage, _, err := image.DecodeConfig(imgdata)
+	if err != nil {
+		return 0, 0, err
+	}
+	return dimage.Width, dimage.Height, nil
 }

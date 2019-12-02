@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -169,14 +170,14 @@ func rGetExif(cxt echo.Context) error {
 				}
 				var err error
 
-				width, height, err2 := getImageDimension(imgdata)
+				width, height, err2 := getImageDimension(imagePath + nowpath)
 				if err2 != nil {
 					exif_res[1][0] = "알 수 없음"
 					exif_res[1][1] = "알 수 없음"
 					log.Println(makeLogPrefix(cxt, "rGetExif"), "Image size getting error :", err2)
 				} else {
-					exif_res[1][0] = string(width) + "px"
-					exif_res[1][1] = string(height) + "px"
+					exif_res[1][0] = strconv.FormatInt(int64(width), 10) + "px"
+					exif_res[1][1] = strconv.FormatInt(int64(height), 10) + "px"
 				}
 
 				exif_res[1][3] = getExifData(exifdata, exif.Model)
