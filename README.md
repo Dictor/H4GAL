@@ -1,5 +1,5 @@
 # HGAL
-[하늘고 4기 사진저장소](https://chinchister.com/h4gal)의 백앤드와 프론트앤드 코드 저장소입니다.
+[하늘고 4기 사진저장소](https://chinchister.com/h4gal/)의 백앤드와 프론트앤드 코드 저장소입니다.
 
 
 ## 설정 파일 작성법
